@@ -57,11 +57,11 @@
             //              |      |       |       |      |      |  |      |      |      |       |      |
 
             bindings = <
-&bt BT_CLR  &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4                    &out OUT_TOG &trans    &trans  &trans     &trans         &bt BT_CLR
-&trans      &kp INS       &kp PSCRN     &kp K_CMENU   &trans        &trans                          &kp PG_UP  &trans    &trans  &trans     &kp N0         &trans
-&trans      &kp LALT      &kp LCTRL     &kp LSHFT     &trans        &kp CLCK                        &kp LEFT   &kp DOWN  &kp UP  &kp RIGHT  &trans         &kp PIPE
-&trans      &kp K_UNDO    &kp K_CUT     &kp K_COPY    &kp K_PASTE   &trans        &trans    &trans  &trans     &trans    &trans  &trans     &kp BACKSLASH  &trans
-                          &trans        &trans        &trans        &trans        &trans    &trans  &trans     &trans    &trans  &trans
+&bt BT_CLR  &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3    &bt BT_SEL 4                    &out OUT_TOG  &trans    &trans  &trans     &trans         &bt BT_CLR
+&trans      &kp INS       &kp PSCRN     &kp K_CMENU   &trans          &trans                          &kp PG_UP     &trans    &trans  &trans     &kp N0         &trans
+&trans      &kp MINUS     &kp PLUS      &kp EQUAL     &kp UNDERSCORE  &kp CLCK                        &kp LEFT      &kp DOWN  &kp UP  &kp RIGHT  &trans         &kp PIPE
+&trans      &kp K_UNDO    &kp K_CUT     &kp K_COPY    &kp K_PASTE     &trans        &trans    &trans  &trans        &trans    &trans  &trans     &kp BACKSLASH  &trans
+                          &trans        &trans        &trans          &trans        &trans    &trans  &trans        &trans    &trans  &trans
             >;
         };
     };
