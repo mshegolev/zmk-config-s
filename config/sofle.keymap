@@ -49,9 +49,9 @@
             bindings = <
 &bt BT_CLR   &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3   &bt BT_SEL 4                    &out OUT_USB &out OUT_BLE  &out OUT_TOG  &trans        &trans         &bt BT_CLR
 &trans       &kp INS       &kp PSCRN     &kp K_CMENU   &trans         &trans                          &trans       &kp PG_UP     &trans        &trans        &trans         &trans
-&trans       &kp LALT      &kp LCTRL     &kp LSHFT     &trans         &kp CAPSLOCK                    &trans       &kp PG_DN     &kp LEFT_ARROW &kp DOWN_ARROW &kp RIGHT_ARROW &kp DELETE &kp BSPC
-&trans       &kp UNDO      &kp CUT       &kp COPY      &kp PASTE      &trans   &trans       &trans    &trans   &trans  &trans &trans &trans    &trans
-                      &trans     &trans       &trans    &trans                 &trans       &trans            &trans    &trans    &trans        &trans
+&trans       &kp LALT      &kp LCTRL     &kp LSHFT     &trans         &trans                          &trans       &trans        &trans        &trans        &trans         &trans
+&trans       &trans        &trans        &trans        &trans         &trans   &trans       &trans    &trans       &trans        &trans        &trans        &trans         &trans
+                      &trans     &trans       &trans    &trans                 &trans       &trans            &trans    &trans    &trans       &trans
 
             >;
         };
