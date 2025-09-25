@@ -49,20 +49,37 @@
         };
 
         raise_layer {
-            // ------------------------------------------------------------------------------------------------------------
-            // |BTCLR| BT1  | BT2  |  BT3  |  BT4  |  BT5 |                |      |      |       |      |       |       |
-            // |     | INS  | PSCR | GUI   |       |      |                | PGUP |      |   ^   |      |       |       |
-            // |     | ALT  | CTRL | SHIFT |       | CAPS |                | PGDN |   <- |   v   |  ->  |  DEL  | BKSPC |
-            // |     | UNDO | CUT  | COPY  | PASTE |      |      |  |      |      |      |       |      |       |       |
-            //              |      |       |       |      |      |  |      |      |      |       |      |
+    // ------------------------------------------------------------------------------------------------------------
+    // |BTCLR| BT1  | BT2  |  BT3  |  BT4  |  BT5  |               | OUTU | OUTB | OUTTG |      |       | BTCLR |
+    // |     | INS  | PSCR | GUI   |       |      |               | PGUP |      |       |      |       |       |
+    // |     | ALT  | CTRL | SHIFT |       | CAPS |               | PGDN |   <- |   v   |  ->  |  DEL  | BKSPC |
+    // |     | UNDO | CUT  | COPY  | PASTE |      |      |  |      |      |      |       |      |       |       |
+    //              |      |       |       |      |      |  |      |      |      |       |      |
 
-            bindings = <
-&bt BT_CLR  &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3    &bt BT_SEL 4                    &out OUT_TOG  &trans    &trans  &trans     &trans         &bt BT_CLR
-&trans      &kp INS       &kp PSCRN     &kp K_CMENU   &trans          &trans                          &kp PG_UP     &trans    &trans  &trans     &kp N0         &trans
-&trans      &kp MINUS     &kp PLUS      &kp EQUAL     &kp UNDERSCORE  &kp CLCK                        &kp LEFT      &kp DOWN  &kp UP  &kp RIGHT  &trans         &kp PIPE
-&trans      &kp K_UNDO    &kp K_CUT     &kp K_COPY    &kp K_PASTE     &trans        &trans    &trans  &trans        &trans    &trans  &trans     &kp BACKSLASH  &trans
-                          &trans        &trans        &trans          &trans        &trans    &trans  &trans        &trans    &trans  &trans
-            >;
+    bindings = <
+        &bt BT_CLR   &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3   &bt BT_SEL 4
+        &out OUT_USB &out OUT_BLE  &out OUT_TOG  &trans        &trans         &bt BT_CLR
+
+        &trans       &kp INS       &kp PSCRN     &kp K_CMENU   &trans         &trans
+        &trans       &kp PG_UP     &trans        &trans        &trans         &trans
+        &trans       &kp LALT      &kp LCTRL     &kp LSHFT     &trans         &kp CAPSLOCK
+        &trans       &kp PG_DN     &kp LEFT_ARROW &kp DOWN_ARROW &kp RIGHT_ARROW &kp DELETE &kp BSPC
+        &trans       &kp UNDO      &kp CUT       &kp COPY      &kp PASTE      &trans
+    >;
+
+};
+    };
+};
+
+
+/ {
+    combos {
+        compatible = "zmk,combos";
+
+        combo_tilde {
+            timeout-ms = <50>;          // Максимальное время для одновременного нажатия
+            key-positions = <36 49>;    // LSHIFT + RSHIFT
+            bindings = <&kp TILDE>;     // Результат: тильда (~)
         };
     };
 };
