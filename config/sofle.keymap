@@ -10,6 +10,16 @@
 #include <dt-bindings/zmk/outputs.h>
 
 / {
+    combos {
+        compatible = "zmk,combos";
+
+        combo_tilde {
+            trigger-keys = <49 36>;    // 49 = RSHIFT, 36 = LSHIFT
+            layers = <0>;
+            timeout-ms = <100>;
+            bindings = <&kp GRAVE>;    // Shift + GRAVE дает тильду
+        };
+    };
     keymap {
         compatible = "zmk,keymap";
 

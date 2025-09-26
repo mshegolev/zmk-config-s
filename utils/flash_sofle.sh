@@ -1,120 +1,66 @@
 #!/bin/bash
 set -e
 
-ZMK_DIR="/opt/develop/zmk"                  # ядро ZMK
-CONF_DIR="/opt/develop/zmk-config-s/config" # твой конфиг
-BUILD_DIR="$ZMK_DIR/build"                  # папка сборки
-MOUNT_DIR="/tmp/nicenano_mount"
-BUILD_YAML="/opt/develop/zmk-config-s/build.yaml"
+MOUNT_DIR="$HOME/nicenano_mount"
+DOWNLOADS="$HOME/Downloads/firmware (2)"
+PASS_FILE="$HOME/pss_file"
 
-DO_BUILD=1
-DO_CLEAN=0
-DO_VERBOSE=0
-TARGET="all"
+FORCE_MODE=0
+
+# ===== Обработка аргументов =====
+ARGS=()
+for arg in "$@"; do
+    if [ "$arg" == "--force" ]; then
+        FORCE_MODE=1
+    else
+        ARGS+=("$arg")
+    fi
+done
+set -- "${ARGS[@]}"
+
+# ===== Читаем пароль =====
+if [ ! -f "$PASS_FILE" ]; then
+    echo "❌ Файл с паролем не найден: $PASS_FILE"
+    exit 1
+fi
+SUDO_PASS=$(cat "$PASS_FILE")
 
 # ===== HELP =====
 show_help() {
     cat <<EOF
-🚀 Sofle Flash Utility
+🚀 Sofle Flash Utility (из "$DOWNLOADS")
 
 Использование:
-  ./flash_sofle.sh [target] [options]
+  ./flash_sofle.sh [target] [--force]
 
 target:
-  all       - собрать и прошить обе половины (поочерёдно)
+  all       - прошить обе половины (правую → левую)
   left      - только левую половину
   right     - только правую половину
   reset     - прошивка reset (очистка BT и настроек)
+  btpairs   - показать список Bluetooth-пар (BT1..BT5)
+  btclear   - очистить все BT-пары и сразу перепрошить обе половины
 
 options:
-  --no-build   - пропустить сборку, прошить уже собранное
-  --clean      - очистить build/ перед сборкой (полная пересборка)
-  --verbose    - подробные логи сборки
-  -h, --help   - показать эту справку
-
-Примеры:
-  ./flash_sofle.sh all
-  ./flash_sofle.sh left --clean --verbose
-  ./flash_sofle.sh reset --no-build
+  --force   - отключить предупреждения (для автоматизации)
 EOF
 }
 
-# ===== Проверка окружения =====
-check_env() {
-    echo "$(date) - 🔍 Проверяем окружение..."
+# ===== Поиск последних файлов .uf2 =====
+find_firmware() {
+    LEFT_FIRMWARE=$(ls -t "$DOWNLOADS"/sofle_left-*.uf2 2>/dev/null | head -n1)
+    RIGHT_FIRMWARE=$(ls -t "$DOWNLOADS"/sofle_right-*.uf2 2>/dev/null | head -n1)
+    RESET_FIRMWARE=$(ls -t "$DOWNLOADS"/settings_reset-*.uf2 2>/dev/null | head -n1)
 
-    if ! command -v west >/dev/null 2>&1; then
-        echo "❌ west не найден!"
-        echo "👉 Установи его: pip3 install --user west"
+    if [ -z "$LEFT_FIRMWARE" ] || [ -z "$RIGHT_FIRMWARE" ]; then
+        echo "❌ Не найдены прошивки в $DOWNLOADS"
         exit 1
     fi
 
-    if ! command -v arm-none-eabi-gcc >/dev/null 2>&1; then
-        echo "❌ arm-none-eabi-gcc не найден!"
-        echo "👉 Установи его: brew install arm-none-eabi-gcc"
-        exit 1
-    fi
-
-    echo "$(date) - ✅ Всё в порядке (west и arm-none-eabi-gcc найдены)"
-}
-
-# ===== Вытаскиваем board и shields из build.yaml =====
-parse_build_yaml() {
-    BOARD=$(grep "board:" "$BUILD_YAML" | head -n1 | cut -d':' -f2 | xargs)
-    SHIELDS=$(grep "shield:" "$BUILD_YAML" | cut -d':' -f2 | xargs)
-
-    # Проверка board
-    if [ -z "$BOARD" ]; then
-        echo "❌ Ошибка: board не найден в $BUILD_YAML"
-        echo "👉 Проверь, что в build.yaml есть строка вида:"
-        echo "   - board: nice_nano_v2"
-        exit 1
-    fi
-
-    # Проверка shields
-    if [ -z "$SHIELDS" ]; then
-        echo "❌ Ошибка: shields не найдены в $BUILD_YAML"
-        echo "👉 Проверь, что в build.yaml есть строки вида:"
-        echo "   shield: sofle_left"
-        echo "   shield: sofle_right"
-        exit 1
-    fi
-
-    echo "$(date) - Используем board: $BOARD"
-    echo "$(date) - Используем shields: $SHIELDS"
-}
-
-# Пути к прошивкам
-LEFT_FIRMWARE="$BUILD_DIR/left/zephyr/zmk.uf2"
-RIGHT_FIRMWARE="$BUILD_DIR/right/zephyr/zmk.uf2"
-RESET_FIRMWARE="$BUILD_DIR/reset/zephyr/zmk.uf2"
-
-# ===== СБОРКА =====
-build_all() {
-    if [ "$DO_BUILD" -eq 0 ]; then
-        echo "$(date) - ⏭️ Пропускаем сборку (режим --no-build)"
-        return
-    fi
-
-    if [ "$DO_CLEAN" -eq 1 ]; then
-        echo "$(date) - 🧹 Полностью очищаем build/..."
-        rm -rf "$BUILD_DIR"
-    fi
-
-    echo "$(date) - 🛠️ Запускаем сборку прошивок..."
-
-    local WEST="west"
-    [ "$DO_VERBOSE" -eq 1 ] && WEST="west -v"
-
-    pushd "$ZMK_DIR" >/dev/null
-
-    $WEST build -d "$BUILD_DIR/left" -p -b "$BOARD" app -- -DSHIELD=sofle_left -DZMK_CONFIG=$CONF_DIR
-    $WEST build -d "$BUILD_DIR/right" -p -b "$BOARD" app -- -DSHIELD=sofle_right -DZMK_CONFIG=$CONF_DIR
-    $WEST build -d "$BUILD_DIR/reset" -p -b "$BOARD" app -- -DSHIELD=settings_reset -DZMK_CONFIG=$CONF_DIR
-
-    popd >/dev/null
-
-    echo "$(date) - ✅ Сборка завершена"
+    echo "✅ Найдены прошивки:"
+    echo "   Левая  = $LEFT_FIRMWARE"
+    echo "   Правая = $RIGHT_FIRMWARE"
+    [ -n "$RESET_FIRMWARE" ] && echo "   Reset  = $RESET_FIRMWARE"
 }
 
 # ===== ПРОШИВКА =====
@@ -123,11 +69,15 @@ flash_half() {
     local half_name="$2"
 
     if [ ! -f "$fw_file" ]; then
-        echo "$(date) - ❌ Файл прошивки не найден: $fw_file"
+        echo "❌ Файл прошивки не найден: $fw_file"
         exit 1
     fi
 
-    echo "$(date) - Для $half_name: нажми 2 раза reset и ждем подключение..."
+    if [ $FORCE_MODE -eq 0 ]; then
+        echo "⚠️  Перед прошивкой $half_name отключи обе половины клавиатуры!"
+        echo "   Подключи по USB только $half_name и нажми 2 раза reset."
+        sleep 2
+    fi
 
     while true; do
         MOUNT_POINT=$(ls /Volumes | grep -iE "NICENANO" | head -n 1)
@@ -135,70 +85,101 @@ flash_half() {
             echo "$(date) - $half_name подключена: /Volumes/$MOUNT_POINT"
 
             DEVICE=$(df | grep "/Volumes/$MOUNT_POINT" | awk '{print $1}' | sed 's|/dev/||')
-            [ -z "$DEVICE" ] && DEVICE="disk4" && echo "$(date) - DEVICE не определен, используем /dev/$DEVICE"
+            [ -z "$DEVICE" ] && DEVICE="disk4"
 
-            echo "$(date) - Отмонтируем /Volumes/$MOUNT_POINT..."
-            diskutil unmount "/Volumes/$MOUNT_POINT" || echo "$(date) - Уже отмонтирована или ошибка"
+            echo "$SUDO_PASS" | sudo -S diskutil unmount "/Volumes/$MOUNT_POINT" || true
+            [ ! -d "$MOUNT_DIR" ] && mkdir -p "$MOUNT_DIR"
 
-            [ ! -d "$MOUNT_DIR" ] && echo "$(date) - Создаем $MOUNT_DIR" && mkdir -p "$MOUNT_DIR"
+            echo "$SUDO_PASS" | sudo -S mount -t msdos -o rw,auto,nobrowse "/dev/$DEVICE" "$MOUNT_DIR" || {
+                echo "❌ Ошибка монтирования"
+                exit 1
+            }
 
-            echo "$(date) - Монтируем /dev/$DEVICE в $MOUNT_DIR..."
-            mount -t msdos -o rw,auto,nobrowse "/dev/$DEVICE" "$MOUNT_DIR" || echo "$(date) - Ошибка монтирования, продолжаем"
-
-            echo "$(date) - Копируем $fw_file на $half_name..."
-            cp "$fw_file" "$MOUNT_DIR/" && echo "$(date) - ✅ $half_name успешно прошита" || echo "$(date) - ❌ Ошибка копирования"
-
-            echo "$(date) - Отмонтируем $MOUNT_DIR..."
-            diskutil unmount "$MOUNT_DIR" || echo "$(date) - Уже отмонтирована или ошибка"
-
+            cp "$fw_file" "$MOUNT_DIR/" && echo "✅ $half_name успешно прошита"
+            echo "$SUDO_PASS" | sudo -S diskutil unmount "$MOUNT_DIR" || true
             break
         fi
         sleep 1
     done
-
-    echo "$(date) - Ждем отключения $half_name..."
-    while mount | grep "$MOUNT_DIR" >/dev/null || mount | grep "/Volumes/NICENANO" >/dev/null; do
-        sleep 1
-    done
-    echo "$(date) - $half_name отсоединена"
 }
 
-# ===== ПАРСИНГ АРГУМЕНТОВ =====
+# ===== ПАРСИНГ BT-ПАР =====
+show_btpairs() {
+    echo "$(date) - 🔍 Сканируем BT-пары..."
+
+    PORT=$(ls /dev/tty.usbmodem* 2>/dev/null | head -n1)
+    if [ -z "$PORT" ]; then
+        echo "❌ Не найден USB-порт для nice!nano"
+        exit 1
+    fi
+    echo "✅ Найден порт: $PORT"
+
+    echo "👉 Читаем последние 50 строк лога ZMK..."
+    LOG=$(timeout 5 cat "$PORT" 2>/dev/null | tail -n 50)
+
+    echo "---- 🔗 Найденные BT-профили ----"
+    echo "$LOG" | grep "Active BLE profile" | sed -E 's/.*Active BLE profile ([0-9]+): (.*)/BT\1 → \2/'
+    echo "--------------------------------"
+}
+
+# ===== ОЧИСТКА BT-ПАР + авто-перепрошивка =====
+clear_btpairs() {
+    find_firmware
+    if [ -z "$RESET_FIRMWARE" ]; then
+        echo "❌ Reset-прошивка не найдена в $DOWNLOADS"
+        exit 1
+    fi
+    echo "$(date) - ⚠️ Сначала будет прошивка reset, все BT-пары удалятся!"
+    flash_half "$RESET_FIRMWARE" "reset-прошивкой"
+    echo "✅ Все BT-пары очищены"
+
+    echo "$(date) - 🔄 Перепрошиваем обе половины (правую → левую)..."
+    flash_half "$RIGHT_FIRMWARE" "правую половину"
+    flash_half "$LEFT_FIRMWARE" "левую половину"
+    echo "✅ Обе половины перепрошиты"
+}
+
+# ===== ОСНОВНОЙ БЛОК =====
 if [ $# -eq 0 ]; then
     show_help
     exit 0
 fi
 
-for arg in "$@"; do
-    case "$arg" in
-        --no-build) DO_BUILD=0 ;;
-        --clean) DO_CLEAN=1 ;;
-        --verbose) DO_VERBOSE=1 ;;
-        -h|--help) show_help; exit 0 ;;
-        left|right|all|reset) TARGET="$arg" ;;
-    esac
-done
+TARGET="$1"
 
-# ===== ОСНОВНОЙ БЛОК =====
-echo "$(date) - 🚀 Автоматическая сборка и прошивка Sofle V2"
-
-check_env
-parse_build_yaml
-build_all
+echo "$(date) - 🚀 Автоматическая прошивка Sofle V2"
 
 case "$TARGET" in
-    reset)
-        flash_half "$RESET_FIRMWARE" "reset-прошивкой"
-        ;;
     all)
-        flash_half "$LEFT_FIRMWARE" "левую половину"
+        find_firmware
         flash_half "$RIGHT_FIRMWARE" "правую половину"
+        flash_half "$LEFT_FIRMWARE" "левую половину"
         ;;
     left)
+        find_firmware
         flash_half "$LEFT_FIRMWARE" "левую половину"
         ;;
     right)
+        find_firmware
         flash_half "$RIGHT_FIRMWARE" "правую половину"
+        ;;
+    reset)
+        find_firmware
+        if [ -n "$RESET_FIRMWARE" ]; then
+            flash_half "$RESET_FIRMWARE" "reset-прошивкой"
+        else
+            echo "❌ Reset-прошивка не найдена"
+            exit 1
+        fi
+        ;;
+    btpairs)
+        show_btpairs
+        ;;
+    btclear)
+        clear_btpairs
+        ;;
+    *)
+        show_help
         ;;
 esac
 
