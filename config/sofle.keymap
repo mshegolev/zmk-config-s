@@ -90,6 +90,14 @@
             bindings = <&tog 3>;         // Toggle layer 3 (unlock)
             layers = <3>;                // Только на lock слое (разблокировка)
         };
+
+        // ALT + BSPC → Delete word (удалить слово назад)
+        combo_delete_word {
+            timeout-ms = <50>;
+            key-positions = <23 51>;  // BSPC=23, ALT=51
+            bindings = <&kp LA(BSPC)>;  // Option(Alt) + Backspace
+            layers = <0>;
+        };
     };
 
     keymap {
