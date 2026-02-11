@@ -86,7 +86,9 @@ fetch_remote_version() {
 
     # Получаем тег для коммита (если есть)
     REMOTE_TAG=$(gh api "repos/$REPO/tags" --jq ".[] | select(.commit.sha == \"$REMOTE_COMMIT\") | .name" 2>/dev/null | head -1)
-    [ -z "$REMOTE_TAG" ] && REMOTE_TAG="-"
+    if [ -z "$REMOTE_TAG" ]; then
+        REMOTE_TAG="-"
+    fi
 }
 
 # ===== ПРОВЕРИТЬ ВЕРСИИ =====
@@ -165,16 +167,16 @@ download_firmware() {
     # Удаляем пустые поддиректории
     find "$DOWNLOADS" -type d -empty -delete
 
-    # Сохраняем информацию о версии
+    # Сохраняем информацию о версии (кавычки для значений с пробелами)
     cat > "$VERSION_FILE" <<EOF
-run_id=$RUN_ID
-commit=$COMMIT_SHA
-commit_short=$COMMIT_SHORT
-branch=$BRANCH
-build_date=$BUILD_DATE
-commit_message=$COMMIT_MSG
-tag=$TAG
-download_date=$(date -Iseconds)
+run_id="$RUN_ID"
+commit="$COMMIT_SHA"
+commit_short="$COMMIT_SHORT"
+branch="$BRANCH"
+build_date="$BUILD_DATE"
+commit_message="$COMMIT_MSG"
+tag="$TAG"
+download_date="$(date -Iseconds)"
 EOF
 
     echo "✅ Прошивки скачаны в $DOWNLOADS:"
