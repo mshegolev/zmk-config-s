@@ -326,14 +326,23 @@ flash_half() {
             DEVICE=$(df | grep "/Volumes/$MOUNT_POINT" | awk '{print $1}' | sed 's|/dev/||')
             [ -z "$DEVICE" ] && DEVICE="disk4"
 
-            if ! echo "$SUDO_PASS" | sudo -S diskutil unmount "/Volumes/$MOUNT_POINT" 2>/dev/null; then
-                echo "❌ Ошибка sudo при unmount. Проверь пароль в $PASS_FILE"
+            # Обновляем sudo timestamp
+            echo "$SUDO_PASS" | sudo -S -v 2>/dev/null
+
+            # Пробуем unmount с подробным выводом ошибок
+            UNMOUNT_OUTPUT=$(echo "$SUDO_PASS" | sudo -S diskutil unmount "/Volumes/$MOUNT_POINT" 2>&1)
+            if [ $? -ne 0 ]; then
+                echo "❌ Ошибка при unmount: $UNMOUNT_OUTPUT"
+                echo "💡 Попробуй вручную: sudo diskutil unmount /Volumes/$MOUNT_POINT"
                 exit 1
             fi
             [ ! -d "$MOUNT_DIR" ] && mkdir -p "$MOUNT_DIR"
 
-            if ! echo "$SUDO_PASS" | sudo -S mount -t msdos -o rw,auto,nobrowse "/dev/$DEVICE" "$MOUNT_DIR" 2>/dev/null; then
-                echo "❌ Ошибка sudo при монтировании. Проверь пароль в $PASS_FILE"
+            # Пробуем mount с подробным выводом ошибок
+            MOUNT_OUTPUT=$(echo "$SUDO_PASS" | sudo -S mount -t msdos -o rw,auto,nobrowse "/dev/$DEVICE" "$MOUNT_DIR" 2>&1)
+            if [ $? -ne 0 ]; then
+                echo "❌ Ошибка при монтировании: $MOUNT_OUTPUT"
+                echo "💡 Попробуй вручную: sudo mount -t msdos /dev/$DEVICE $MOUNT_DIR"
                 exit 1
             fi
 
