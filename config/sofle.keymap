@@ -66,9 +66,10 @@
     combos {
         compatible = "zmk,combos";
 
-        // J+K → Escape (быстрый доступ к ESC с домашнего ряда)
+        // J+K → Escape (только после паузы 150мс, не сработает при быстром наборе)
         combo_esc {
-            timeout-ms = <50>;
+            timeout-ms = <30>;
+            require-prior-idle-ms = <150>;
             key-positions = <31 32>;  // J=31, K=32
             bindings = <&kp ESCAPE>;
             layers = <0>;
@@ -98,7 +99,7 @@
             // ------------------------------------------------------------------------------------------------------------
             // Hold-Tap:     ESC: tap=Esc, hold=~     BSPC: tap=⌫, hold=Del
             // Tap-Dance:    ;: tap=;, 2tap=:         ': tap=', 2tap="
-            // Combos:       J+K=Escape               LShift+MO1+MO2=Lock (блокировка)
+            // Combos:       J+K=Escape (после паузы)  LShift+MO1+MO2=Lock
             // ------------------------------------------------------------------------------------------------------------
 
             bindings = <
