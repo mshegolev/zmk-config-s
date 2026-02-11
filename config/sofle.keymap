@@ -68,7 +68,7 @@
 
         // J+K → Escape (после паузы 100мс, чтобы не мешать быстрому набору)
         combo_esc {
-            timeout-ms = <50>;
+            timeout-ms = <30>;
             require-prior-idle-ms = <100>;
             key-positions = <31 32>;  // J=31, K=32
             bindings = <&kp ESCAPE>;
