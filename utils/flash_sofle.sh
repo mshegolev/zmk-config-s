@@ -385,11 +385,13 @@ flash_half() {
             cp "$fw_file" "$MOUNT_DIR/" && echo "✅ $half_name успешно прошита!"
             echo "   Отключи USB от этой половины."
 
-            # Ждем завершения записи
-            echo "⏳ Жду завершения записи (3 сек)..."
-            sleep 3
+            # Синхронизируем и ждем завершения записи
+            echo "⏳ Синхронизация данных..."
+            sync
+            sleep 2
 
-            echo "$SUDO_PASS" | sudo -S diskutil unmount "$MOUNT_DIR" 2>/dev/null || true
+            # Корректно извлекаем диск (eject вместо unmount)
+            echo "$SUDO_PASS" | sudo -S diskutil eject "$MOUNT_DIR" 2>/dev/null || true
 
             # Ждем, пока диск действительно отключится
             echo ""

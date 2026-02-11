@@ -363,12 +363,13 @@ class Flasher:
                         print_color(f"✅ {half_name} успешно прошита!", Colors.GREEN)
                         print(f"   Отключи USB от этой половины.")
 
-                        # Ждем завершения записи
-                        print("⏳ Жду завершения записи (3 сек)...")
-                        time.sleep(3)
+                        # Синхронизируем и ждем завершения записи
+                        print("⏳ Синхронизация данных...")
+                        run_command("sync")
+                        time.sleep(2)
 
-                        # Unmount
-                        self.sudo.run_sudo(f"diskutil unmount {MOUNT_DIR}")
+                        # Корректно извлекаем диск (eject)
+                        self.sudo.run_sudo(f"diskutil eject {MOUNT_DIR}")
 
                         # Ждем отключения диска
                         print()
