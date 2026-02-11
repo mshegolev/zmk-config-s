@@ -2,8 +2,10 @@
 set -e
 
 MOUNT_DIR="$HOME/nicenano_mount"
-DOWNLOADS="$HOME/Downloads/firmware (2)"
+DOWNLOADS="$HOME/Downloads/zmk-firmware"
 PASS_FILE="$HOME/pss_file"
+REPO="mshegolev/zmk-config-s"
+VERSION_FILE="$DOWNLOADS/.version"
 
 FORCE_MODE=0
 
@@ -34,6 +36,9 @@ show_help() {
   ./flash_sofle.sh [target] [--force]
 
 target:
+  download  - скачать последнюю прошивку из GitHub Actions
+  update    - скачать и прошить обе половины (download + all)
+  version   - показать версию скачанной прошивки
   all       - прошить обе половины (правую → левую)
   left      - только левую половину
   right     - только правую половину
@@ -43,7 +48,91 @@ target:
 
 options:
   --force   - отключить предупреждения (для автоматизации)
+
+Требуется: gh (GitHub CLI) для команды download
 EOF
+}
+
+# ===== СКАЧИВАНИЕ ПРОШИВКИ =====
+download_firmware() {
+    echo "$(date) - 📥 Скачивание последней прошивки из GitHub Actions..."
+
+    # Проверка gh CLI
+    if ! command -v gh &> /dev/null; then
+        echo "❌ GitHub CLI (gh) не установлен"
+        echo "   Установка: brew install gh"
+        exit 1
+    fi
+
+    # Проверка авторизации
+    if ! gh auth status &> /dev/null; then
+        echo "❌ Не авторизован в GitHub CLI"
+        echo "   Выполни: gh auth login"
+        exit 1
+    fi
+
+    # Получаем информацию о последнем успешном run
+    RUN_INFO=$(gh run list --repo "$REPO" --workflow build.yml --status success --limit 1 --json databaseId,headSha,createdAt,headBranch,displayTitle)
+    RUN_ID=$(echo "$RUN_INFO" | jq -r '.[0].databaseId')
+    COMMIT_SHA=$(echo "$RUN_INFO" | jq -r '.[0].headSha')
+    COMMIT_SHORT="${COMMIT_SHA:0:7}"
+    BUILD_DATE=$(echo "$RUN_INFO" | jq -r '.[0].createdAt')
+    BRANCH=$(echo "$RUN_INFO" | jq -r '.[0].headBranch')
+    COMMIT_MSG=$(echo "$RUN_INFO" | jq -r '.[0].displayTitle')
+
+    if [ -z "$RUN_ID" ] || [ "$RUN_ID" == "null" ]; then
+        echo "❌ Не найден успешный workflow run"
+        exit 1
+    fi
+
+    echo "✅ Найден run: $RUN_ID"
+    echo "   Commit: $COMMIT_SHORT ($COMMIT_MSG)"
+    echo "   Branch: $BRANCH"
+    echo "   Date:   $BUILD_DATE"
+
+    # Очищаем старые прошивки
+    rm -rf "$DOWNLOADS"
+    mkdir -p "$DOWNLOADS"
+
+    # Скачиваем все артефакты
+    echo "📦 Скачиваем артефакты..."
+    gh run download "$RUN_ID" --repo "$REPO" --dir "$DOWNLOADS"
+
+    # Перемещаем .uf2 файлы из поддиректорий в корень
+    find "$DOWNLOADS" -name "*.uf2" -exec mv {} "$DOWNLOADS/" \;
+    # Удаляем пустые поддиректории
+    find "$DOWNLOADS" -type d -empty -delete
+
+    # Сохраняем информацию о версии
+    cat > "$VERSION_FILE" <<EOF
+run_id=$RUN_ID
+commit=$COMMIT_SHA
+commit_short=$COMMIT_SHORT
+branch=$BRANCH
+build_date=$BUILD_DATE
+commit_message=$COMMIT_MSG
+download_date=$(date -Iseconds)
+EOF
+
+    echo "✅ Прошивки скачаны в $DOWNLOADS:"
+    ls -la "$DOWNLOADS"/*.uf2 2>/dev/null || echo "⚠️ UF2 файлы не найдены"
+    echo ""
+    show_version
+}
+
+# ===== ПОКАЗАТЬ ВЕРСИЮ =====
+show_version() {
+    if [ ! -f "$VERSION_FILE" ]; then
+        echo "❌ Версия не найдена. Сначала выполни: ./flash_sofle.sh download"
+        return 1
+    fi
+
+    source "$VERSION_FILE"
+    echo "📋 Версия прошивки:"
+    echo "   Commit:  $commit_short ($commit_message)"
+    echo "   Branch:  $branch"
+    echo "   Build:   $build_date"
+    echo "   Run ID:  $run_id"
 }
 
 # ===== Поиск последних файлов .uf2 =====
@@ -56,6 +145,9 @@ find_firmware() {
         echo "❌ Не найдены прошивки в $DOWNLOADS"
         exit 1
     fi
+
+    # Показываем версию если доступна
+    [ -f "$VERSION_FILE" ] && show_version && echo ""
 
     echo "✅ Найдены прошивки:"
     echo "   Левая  = $LEFT_FIRMWARE"
@@ -150,6 +242,18 @@ TARGET="$1"
 echo "$(date) - 🚀 Автоматическая прошивка Sofle V2"
 
 case "$TARGET" in
+    download)
+        download_firmware
+        ;;
+    update)
+        download_firmware
+        find_firmware
+        flash_half "$RIGHT_FIRMWARE" "правую половину"
+        flash_half "$LEFT_FIRMWARE" "левую половину"
+        ;;
+    version)
+        show_version
+        ;;
     all)
         find_firmware
         flash_half "$RIGHT_FIRMWARE" "правую половину"

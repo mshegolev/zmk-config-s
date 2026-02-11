@@ -10,14 +10,21 @@
 #include <dt-bindings/zmk/outputs.h>
 
 / {
-    combos {
-        compatible = "zmk,combos";
+    behaviors {
+        // LSHIFT: при удержании RSHIFT выводит ` (grave)
+        lshift_grave: lshift_grave {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp LSHFT>, <&kp GRAVE>;
+            mods = <(MOD_RSFT)>;
+        };
 
-        combo_tilde {
-            timeout-ms = <100>;          // Время для одновременного нажатия
-            key-positions = <36 49>;     // LSHIFT=36, RSHIFT=49
-            bindings = <&kp GRAVE>;      // Shift + GRAVE → ~
-            layers = <0>;                // Работает только на базовом слое
+        // RSHIFT: при удержании LSHIFT выводит ~ (tilde)
+        rshift_tilde: rshift_tilde {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp RSHFT>, <&kp TILDE>;
+            mods = <(MOD_LSFT)>;
         };
     };
 
@@ -39,7 +46,7 @@
 &kp ESCAPE    &kp N1  &kp N2            &kp N3        &kp N4         &kp N5                                         &kp N6  &kp N7     &kp N8        &kp N9             &kp N0    &kp MINUS
 &kp TAB       &kp Q   &kp W             &kp E         &kp R          &kp T                                          &kp Y   &kp U      &kp I         &kp O              &kp P     &kp BSPC
 &kp CAPSLOCK  &kp A   &kp S             &kp D         &kp F          &kp G                                          &kp H   &kp J      &kp K         &kp L              &kp SEMI  &kp SQT
-&kp LSHFT     &kp Z   &kp X             &kp C         &kp V          &kp B   &kp LEFT_BRACKET    &kp RIGHT_BRACKET  &kp N   &kp M      &kp COMMA     &kp DOT            &kp FSLH  &kp RSHIFT
+&lshift_grave &kp Z   &kp X             &kp C         &kp V          &kp B   &kp LEFT_BRACKET    &kp RIGHT_BRACKET  &kp N   &kp M      &kp COMMA     &kp DOT            &kp FSLH  &rshift_tilde
                       &kp LEFT_CONTROL  &kp LEFT_ALT  &kp LEFT_META  &mo 1   &kp SPACE           &kp SPACE          &mo 2   &kp ENTER  &kp UP_ARROW  &kp RIGHT_CONTROL
             >;
         };
@@ -68,18 +75,18 @@
             // ------------------------------------------------------------------------------------------------------------
             // Индексы клавиш (raise):
             //
-            //   0 BTCLR 1 BT1  2 BT2  3 BT3  4 BT4  5 BT5           6 OUTU 7 OUTB 8 OUTT 9 TR  10 TR  11 BTCLR
+            //   0 TR    1 BT1  2 BT2  3 BT3  4 BT4  5 BT5           6 OUTU 7 OUTB 8 OUTT 9 TR  10 TR  11 BTCLR
             //  12 TR   13 INS 14 PSCR 15 MENU 16 TR  17 TR         18 TR   19 PGUP 20 TR   21 TR   22 TR   23 TR
             //  24 TR   25 -   26 +   27 =   28 _   29 TR           30 TR   31 TR   32 TR   33 TR   34 TR   35 TR
-            //  36 TR   37 TR  38 TR  39 TR  40 TR  41 TR  42 TR  43 TR    44 TR   45 TR   46 TR   47 TR   48 TR   49 TR
+            //  36 TR   37 MUTE 38 V-  39 V+  40 TR  41 TR  42 TR  43 TR    44 TR   45 TR   46 TR   47 TR   48 TR   49 TR
             //             50 TR   51 TR   52 TR   53 TR   54 TR    55 TR   56 TR   57 TR   58 TR   59 TR
             // ------------------------------------------------------------------------------------------------------------
 
             bindings = <
-&bt BT_CLR  &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4                    &out OUT_USB  &out OUT_BLE  &out OUT_TOG  &trans  &trans  &bt BT_CLR
+&trans      &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4                    &out OUT_USB  &out OUT_BLE  &out OUT_TOG  &trans  &trans  &bt BT_CLR
 &trans      &kp INS       &kp PSCRN     &kp K_CMENU   &trans        &trans                          &trans        &kp PG_UP     &trans        &trans  &trans  &trans
 &trans      &kp MINUS     &kp PLUS      &kp EQUAL     &kp UNDER     &trans                          &trans        &trans        &trans        &trans  &trans  &trans
-&trans      &trans        &trans        &trans        &trans        &trans        &trans    &trans  &trans        &trans        &trans        &trans  &trans  &trans
+&trans      &kp C_MUTE    &kp C_VOL_DN  &kp C_VOL_UP  &trans        &trans        &trans    &trans  &trans        &trans        &trans        &trans  &trans  &trans
                           &trans        &trans        &trans        &trans        &trans    &trans  &trans        &trans        &trans        &trans
             >;
         };
