@@ -222,7 +222,7 @@ branch="$BRANCH"
 build_date="$BUILD_DATE"
 commit_message="$COMMIT_MSG"
 tag="$TAG"
-download_date="$(date -Iseconds)"
+download_date="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 EOF
 
     echo "✅ Прошивки скачаны в $DOWNLOADS:"
