@@ -161,16 +161,17 @@
 
         lock_layer {
             // ------------------------------------------------------------------------------------------------------------
-            // LOCK LAYER - все клавиши отключены
-            // Разблокировка: LShift + Lower + Raise (тот же комбо)
+            // LOCK LAYER - все клавиши отключены, кроме unlock комбо
+            // Разблокировка: LShift/RShift + Lower + Raise
+            // Активны только: LSHIFT(36), RSHIFT(49), MO1(53), MO2(56)
             // ------------------------------------------------------------------------------------------------------------
 
             bindings = <
-&none  &none  &none  &none  &none  &none                  &none  &none  &none  &none  &none  &none
-&none  &none  &none  &none  &none  &none                  &none  &none  &none  &none  &none  &none
-&none  &none  &none  &none  &none  &none                  &none  &none  &none  &none  &none  &none
-&none  &none  &none  &none  &none  &none  &none    &none  &none  &none  &none  &none  &none  &none
-              &none  &none  &none  &none  &none    &none  &none  &none  &none  &none
+&none           &none  &none  &none  &none  &none                  &none  &none  &none  &none  &none  &none
+&none           &none  &none  &none  &none  &none                  &none  &none  &none  &none  &none  &none
+&none           &none  &none  &none  &none  &none                  &none  &none  &none  &none  &none  &none
+&lshift_grave   &none  &none  &none  &none  &none  &none    &none  &none  &none  &none  &none  &none  &rshift_tilde
+                &none  &none  &none  &mo 1  &none    &none  &mo 2  &none  &none  &none
             >;
         };
     };
