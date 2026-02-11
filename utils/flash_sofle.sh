@@ -333,12 +333,44 @@ flash_half() {
             # Обновляем sudo timestamp
             echo "$SUDO_PASS" | sudo -S -v 2>/dev/null
 
-            # Пробуем unmount с подробным выводом ошибок
-            UNMOUNT_OUTPUT=$(echo "$SUDO_PASS" | sudo -S diskutil unmount "/Volumes/$MOUNT_POINT" 2>&1)
-            if [ $? -ne 0 ]; then
-                echo "❌ Ошибка при unmount: $UNMOUNT_OUTPUT"
-                echo "💡 Попробуй вручную: sudo diskutil unmount /Volumes/$MOUNT_POINT"
-                exit 1
+            # Пробуем unmount с повторами (до 3 попыток)
+            UNMOUNTED=0
+            for attempt in 1 2 3; do
+                if [ $attempt -eq 1 ]; then
+                    # Первая попытка - обычный unmount
+                    UNMOUNT_OUTPUT=$(echo "$SUDO_PASS" | sudo -S diskutil unmount "/Volumes/$MOUNT_POINT" 2>&1)
+                else
+                    # Повторные попытки - force unmount
+                    echo "⚠️  Попытка $attempt/3: принудительный unmount..."
+                    sleep 1
+                    UNMOUNT_OUTPUT=$(echo "$SUDO_PASS" | sudo -S diskutil unmount force "/Volumes/$MOUNT_POINT" 2>&1)
+                fi
+
+                if [ $? -eq 0 ] || echo "$UNMOUNT_OUTPUT" | grep -qi "successfully"; then
+                    UNMOUNTED=1
+                    if [ $attempt -gt 1 ]; then
+                        echo "✅ Принудительный unmount успешен"
+                    fi
+                    break
+                fi
+            done
+
+            if [ $UNMOUNTED -eq 0 ]; then
+                echo "❌ Не удалось unmount после 3 попыток"
+                echo ""
+                read -p "Продолжить? (y - да, n - выход, r - повторить unmount): " choice
+                case "$choice" in
+                    n|N)
+                        exit 1
+                        ;;
+                    r|R)
+                        echo "Попробуй вручную: sudo diskutil unmount force /Volumes/$MOUNT_POINT"
+                        read -p "Нажми Enter когда unmount будет готов..."
+                        ;;
+                    *)
+                        # y или другое - продолжаем
+                        ;;
+                esac
             fi
             [ ! -d "$MOUNT_DIR" ] && mkdir -p "$MOUNT_DIR"
 
@@ -352,6 +384,11 @@ flash_half() {
 
             cp "$fw_file" "$MOUNT_DIR/" && echo "✅ $half_name успешно прошита!"
             echo "   Отключи USB от этой половины."
+
+            # Ждем завершения записи
+            echo "⏳ Жду завершения записи (3 сек)..."
+            sleep 3
+
             echo "$SUDO_PASS" | sudo -S diskutil unmount "$MOUNT_DIR" 2>/dev/null || true
 
             # Ждем, пока диск действительно отключится
