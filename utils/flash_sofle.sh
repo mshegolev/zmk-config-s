@@ -166,9 +166,21 @@ flash_half() {
     fi
 
     if [ $FORCE_MODE -eq 0 ]; then
-        echo "⚠️  Перед прошивкой $half_name отключи обе половины клавиатуры!"
-        echo "   Подключи по USB только $half_name и нажми 2 раза reset."
-        sleep 2
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "⚠️  ПРОШИВКА: $half_name"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        echo "📋 Что нужно сделать:"
+        echo "   1. Отключи TRRS кабель между половинками!"
+        echo "   2. Отключи USB от обеих половин"
+        echo "   3. Подключи USB только к: $half_name"
+        echo "   4. Нажми 2 раза кнопку RESET на контроллере"
+        echo "      (появится диск NICENANO)"
+        echo ""
+        echo "⏳ Жду диск NICENANO..."
+        echo "   (нажми Ctrl+C для отмены)"
+        echo ""
     fi
 
     while true; do
@@ -187,7 +199,8 @@ flash_half() {
                 exit 1
             }
 
-            cp "$fw_file" "$MOUNT_DIR/" && echo "✅ $half_name успешно прошита"
+            cp "$fw_file" "$MOUNT_DIR/" && echo "✅ $half_name успешно прошита!"
+            echo "   Отключи USB от этой половины."
             echo "$SUDO_PASS" | sudo -S diskutil unmount "$MOUNT_DIR" || true
             break
         fi
@@ -250,6 +263,16 @@ case "$TARGET" in
         find_firmware
         flash_half "$RIGHT_FIRMWARE" "правую половину"
         flash_half "$LEFT_FIRMWARE" "левую половину"
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "✅ ОБЕ ПОЛОВИНЫ ПРОШИТЫ!"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        echo "📋 Финальные шаги:"
+        echo "   1. Подключи TRRS кабель между половинами"
+        echo "   2. Подключи USB к любой половине"
+        echo "   3. Готово! Клавиатура должна работать"
+        echo ""
         ;;
     version)
         show_version
@@ -258,6 +281,16 @@ case "$TARGET" in
         find_firmware
         flash_half "$RIGHT_FIRMWARE" "правую половину"
         flash_half "$LEFT_FIRMWARE" "левую половину"
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "✅ ОБЕ ПОЛОВИНЫ ПРОШИТЫ!"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        echo "📋 Финальные шаги:"
+        echo "   1. Подключи TRRS кабель между половинами"
+        echo "   2. Подключи USB к любой половине"
+        echo "   3. Готово! Клавиатура должна работать"
+        echo ""
         ;;
     left)
         find_firmware
