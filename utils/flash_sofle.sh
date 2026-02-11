@@ -70,6 +70,8 @@ else
         chmod 600 "$PASS_FILE"
         echo "✅ Пароль обновлен в $PASS_FILE"
         echo ""
+    else
+        echo "✅ Пароль sudo проверен ($PASS_FILE)"
     fi
 fi
 
