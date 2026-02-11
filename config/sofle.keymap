@@ -7,6 +7,7 @@
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/mouse.h>
 #include <dt-bindings/zmk/outputs.h>
 
 / {
@@ -76,17 +77,17 @@
             // Индексы клавиш (raise):
             //
             //   0 TR    1 BT1  2 BT2  3 BT3  4 BT4  5 BT5           6 OUTU 7 OUTB 8 OUTT 9 TR  10 TR  11 BTCLR
-            //  12 TR   13 INS 14 PSCR 15 MENU 16 TR  17 TR         18 TR   19 PGUP 20 TR   21 TR   22 TR   23 TR
-            //  24 TR   25 -   26 +   27 =   28 _   29 TR           30 TR   31 TR   32 TR   33 TR   34 TR   35 TR
-            //  36 TR   37 MUTE 38 V-  39 V+  40 TR  41 TR  42 TR  43 TR    44 TR   45 TR   46 TR   47 TR   48 TR   49 TR
+            //  12 TR   13 INS 14 PSCR 15 MENU 16 TR  17 TR         18 TR  19 SCR↑ 20 SCR↓ 21 TR   22 TR   23 TR
+            //  24 TR   25 -   26 +   27 =   28 _   29 TR          30 M←   31 M↓   32 M↑   33 M→   34 TR   35 TR
+            //  36 TR   37 MUTE 38 V-  39 V+  40 TR  41 TR  42 TR  43 TR   44 LCK  45 RCK  46 TR   47 TR   48 TR   49 TR
             //             50 TR   51 TR   52 TR   53 TR   54 TR    55 TR   56 TR   57 TR   58 TR   59 TR
             // ------------------------------------------------------------------------------------------------------------
 
             bindings = <
 &trans      &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4                    &out OUT_USB  &out OUT_BLE  &out OUT_TOG  &trans  &trans  &bt BT_CLR
-&trans      &kp INS       &kp PSCRN     &kp K_CMENU   &trans        &trans                          &trans        &kp PG_UP     &trans        &trans  &trans  &trans
-&trans      &kp MINUS     &kp PLUS      &kp EQUAL     &kp UNDER     &trans                          &trans        &trans        &trans        &trans  &trans  &trans
-&trans      &kp C_MUTE    &kp C_VOL_DN  &kp C_VOL_UP  &trans        &trans        &trans    &trans  &trans        &trans        &trans        &trans  &trans  &trans
+&trans      &kp INS       &kp PSCRN     &kp K_CMENU   &trans        &trans                          &trans        &msc SCRL_UP    &msc SCRL_DOWN  &trans  &trans  &trans
+&trans      &kp MINUS     &kp PLUS      &kp EQUAL     &kp UNDER     &trans                          &mmv MOVE_LEFT  &mmv MOVE_DOWN  &mmv MOVE_UP  &mmv MOVE_RIGHT  &trans  &trans
+&trans      &kp C_MUTE    &kp C_VOL_DN  &kp C_VOL_UP  &trans        &trans        &trans    &trans  &mkp LCLK       &mkp RCLK       &trans        &trans  &trans  &trans
                           &trans        &trans        &trans        &trans        &trans    &trans  &trans        &trans        &trans        &trans
             >;
         };
