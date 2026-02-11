@@ -563,6 +563,144 @@ class Flasher:
         print("(Raise = правая нижняя кнопка большого пальца)")
         print()
 
+# ===== Просмотр раскладки =====
+class KeymapViewer:
+    KEYMAP_FILE = Path(__file__).parent.parent / "config" / "sofle.keymap"
+
+    @staticmethod
+    def show_layout():
+        """Показать раскладку клавиатуры"""
+        if not KeymapViewer.KEYMAP_FILE.exists():
+            print_color(f"❌ Файл конфигурации не найден: {KeymapViewer.KEYMAP_FILE}", Colors.RED)
+            return
+
+        content = KeymapViewer.KEYMAP_FILE.read_text()
+
+        print_color("⌨️  РАСКЛАДКА КЛАВИАТУРЫ SOFLE", Colors.BLUE)
+        print()
+
+        # Показываем behaviors
+        KeymapViewer._show_behaviors(content)
+
+        # Показываем combos
+        KeymapViewer._show_combos(content)
+
+        # Показываем слои
+        KeymapViewer._show_layers(content)
+
+    @staticmethod
+    def _show_behaviors(content):
+        """Показать behaviors (hold-tap, tap-dance)"""
+        print("━" * 80)
+        print_color("🎛️  BEHAVIORS (Специальные поведения клавиш)", Colors.GREEN)
+        print("━" * 80)
+        print()
+
+        behaviors = []
+
+        # Hold-tap behaviors
+        if "bspc_del:" in content:
+            behaviors.append("• BSPC: tap=Backspace, hold=Delete")
+        if "esc_tilde:" in content:
+            behaviors.append("• ESC: tap=Escape, hold=Tilde (~)")
+
+        # Tap-dance behaviors
+        if "semi_colon:" in content:
+            behaviors.append("• ; (semicolon): tap=;, double-tap=:")
+        if "sqt_dqt:" in content:
+            behaviors.append("• ' (quote): tap=', double-tap=\"")
+
+        # Mod-morph behaviors
+        if "lshift_grave:" in content:
+            behaviors.append("• LSHIFT: обычно=Shift, с RSHIFT=` (grave)")
+        if "rshift_tilde:" in content:
+            behaviors.append("• RSHIFT: обычно=Shift, с LSHIFT=~ (tilde)")
+
+        for behavior in behaviors:
+            print(behavior)
+        print()
+
+    @staticmethod
+    def _show_combos(content):
+        """Показать combos (комбинации клавиш)"""
+        print("━" * 80)
+        print_color("🔀 COMBOS (Комбинации клавиш)", Colors.GREEN)
+        print("━" * 80)
+        print()
+
+        combos = []
+
+        if "combo_esc" in content:
+            combos.append("• J + K → Escape (с задержкой 150мс)")
+        if "combo_lock" in content:
+            combos.append("• LSHIFT + Lower + Raise → Заблокировать клавиатуру 🔒")
+        if "combo_unlock" in content:
+            combos.append("• RSHIFT + Lower + Raise → Разблокировать клавиатуру 🔓")
+        if "combo_delete_word" in content:
+            combos.append("• ALT + BSPC → Удалить слово (Option+Backspace)")
+
+        for combo in combos:
+            print(combo)
+        print()
+
+    @staticmethod
+    def _show_layers(content):
+        """Показать слои клавиатуры"""
+        print("━" * 80)
+        print_color("📑 СЛОИ КЛАВИАТУРЫ", Colors.GREEN)
+        print("━" * 80)
+        print()
+
+        layers = [
+            {
+                'name': 'default_layer',
+                'title': '🔵 СЛОЙ 0: DEFAULT (Основной)',
+                'description': 'Обычная раскладка QWERTY с модификаторами'
+            },
+            {
+                'name': 'lower_layer',
+                'title': '🟡 СЛОЙ 1: LOWER (Символы и навигация)',
+                'description': 'F-клавиши, цифры, символы, стрелки'
+            },
+            {
+                'name': 'raise_layer',
+                'title': '🟢 СЛОЙ 2: RAISE (Bluetooth и мышь)',
+                'description': 'Bluetooth профили, мышь, медиа-клавиши'
+            },
+            {
+                'name': 'lock_layer',
+                'title': '🔴 СЛОЙ 3: LOCK (Блокировка)',
+                'description': 'Все клавиши заблокированы (только unlock комбо работает)'
+            }
+        ]
+
+        for layer in layers:
+            print_color(layer['title'], Colors.YELLOW)
+            print(f"   {layer['description']}")
+
+            # Пытаемся найти комментарии о слое
+            layer_start = content.find(f"{layer['name']} {{")
+            if layer_start != -1:
+                # Ищем комментарии перед слоем
+                lines_before = content[:layer_start].split('\n')[-20:]
+                for line in lines_before:
+                    if '//' in line and any(x in line.lower() for x in ['индексы', 'hold-tap', 'tap-dance', 'combo']):
+                        comment = line.split('//')[-1].strip()
+                        if comment and len(comment) > 10:
+                            print(f"   ℹ️  {comment}")
+            print()
+
+        # Показываем как переключаться между слоями
+        print("━" * 80)
+        print_color("🔄 ПЕРЕКЛЮЧЕНИЕ СЛОЕВ", Colors.BLUE)
+        print("━" * 80)
+        print()
+        print("• Lower (слой 1): удерживай левую нижнюю кнопку большого пальца")
+        print("• Raise (слой 2): удерживай правую нижнюю кнопку большого пальца")
+        print("• Lock (слой 3): LSHIFT + Lower + Raise (блокировка)")
+        print("• Unlock: RSHIFT + Lower + Raise (разблокировка)")
+        print()
+
 # ===== CLI =====
 def show_help():
     """Показать справку"""
@@ -574,6 +712,7 @@ def show_help():
     print("Команды:")
     print("  download  - скачать последнюю прошивку (пропускает если уже скачана)")
     print("  version   - показать версию скачанной прошивки")
+    print("  layout    - показать раскладку клавиатуры (все слои)")
     print("  all       - прошить обе половины (правую → левую)")
     print("  left      - только левую половину")
     print("  right     - только правую половину")
@@ -595,6 +734,10 @@ def main():
     # Команды без sudo
     if command == "version":
         GitHubFirmware.show_version()
+        return
+
+    if command == "layout":
+        KeymapViewer.show_layout()
         return
 
     if command == "download":
