@@ -321,12 +321,17 @@ class Flasher:
                         # Обновляем sudo timestamp
                         self.sudo.run_sudo("-v")
 
-                        # Unmount
+                        # Unmount (принудительно если нужно)
                         unmount_out, unmount_err = self.sudo.run_sudo(f"diskutil unmount {mount_point}")
                         if not unmount_out and unmount_err:
-                            print_color(f"❌ Ошибка при unmount: {unmount_err}", Colors.RED)
-                            print(f"💡 Попробуй вручную: sudo diskutil unmount {mount_point}")
-                            sys.exit(1)
+                            # Пробуем force unmount
+                            print_color("⚠️  Обычный unmount не сработал, пробую принудительно...", Colors.YELLOW)
+                            unmount_out, unmount_err = self.sudo.run_sudo(f"diskutil unmount force {mount_point}")
+                            if not unmount_out and unmount_err:
+                                print_color(f"❌ Ошибка при force unmount: {unmount_err}", Colors.RED)
+                                print(f"💡 Попробуй вручную: sudo diskutil unmount force {mount_point}")
+                                sys.exit(1)
+                            print_color("✅ Принудительный unmount успешен", Colors.GREEN)
 
                         # Mount
                         mount_out, mount_err = self.sudo.run_sudo(f"mount -t msdos -o rw,auto,nobrowse /dev/{device} {MOUNT_DIR}")
