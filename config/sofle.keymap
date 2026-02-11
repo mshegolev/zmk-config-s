@@ -82,6 +82,14 @@
             bindings = <&tog 3>;         // Toggle layer 3 (lock)
             layers = <0 3>;              // Работает на default и lock слоях
         };
+
+        // RShift+Lower+Raise → Toggle Lock (блокировка клавиатуры)
+        combo_lock_right {
+            timeout-ms = <100>;
+            key-positions = <49 53 56>;  // RSHIFT=49, MO1=53, MO2=56
+            bindings = <&tog 3>;         // Toggle layer 3 (lock)
+            layers = <0 3>;              // Работает на default и lock слоях
+        };
     };
 
     keymap {

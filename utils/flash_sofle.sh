@@ -23,9 +23,25 @@ set -- "${ARGS[@]}"
 # ===== Читаем пароль =====
 if [ ! -f "$PASS_FILE" ]; then
     echo "❌ Файл с паролем не найден: $PASS_FILE"
+    echo ""
+    echo "📋 Как создать файл с паролем:"
+    echo "   echo 'ваш_пароль_sudo' > $PASS_FILE"
+    echo "   chmod 600 $PASS_FILE"
+    echo ""
     exit 1
 fi
 SUDO_PASS=$(cat "$PASS_FILE")
+
+# Проверяем sudo пароль
+if ! echo "$SUDO_PASS" | sudo -S -v 2>/dev/null; then
+    echo "❌ Неверный пароль sudo в файле: $PASS_FILE"
+    echo ""
+    echo "📋 Обнови пароль:"
+    echo "   echo 'ваш_пароль_sudo' > $PASS_FILE"
+    echo "   chmod 600 $PASS_FILE"
+    echo ""
+    exit 1
+fi
 
 # ===== HELP =====
 show_help() {
@@ -244,34 +260,89 @@ flash_half() {
         echo "   4. Нажми 2 раза кнопку RESET на контроллере"
         echo "      (появится диск NICENANO)"
         echo ""
-        echo "⏳ Жду диск NICENANO..."
+        echo "⏳ Жду диск NICENANO... (таймаут 60 сек)"
         echo "   (нажми Ctrl+C для отмены)"
         echo ""
     fi
 
-    while true; do
-        MOUNT_POINT=$(ls /Volumes | grep -iE "NICENANO" | head -n 1)
+    TIMEOUT=60
+    ELAPSED=0
+    while [ $ELAPSED -lt $TIMEOUT ]; do
+        MOUNT_POINT=$(ls /Volumes 2>/dev/null | grep -iE "NICENANO" | head -n 1)
         if [ -n "$MOUNT_POINT" ]; then
             echo "$(date) - $half_name подключена: /Volumes/$MOUNT_POINT"
 
             DEVICE=$(df | grep "/Volumes/$MOUNT_POINT" | awk '{print $1}' | sed 's|/dev/||')
             [ -z "$DEVICE" ] && DEVICE="disk4"
 
-            echo "$SUDO_PASS" | sudo -S diskutil unmount "/Volumes/$MOUNT_POINT" || true
+            if ! echo "$SUDO_PASS" | sudo -S diskutil unmount "/Volumes/$MOUNT_POINT" 2>/dev/null; then
+                echo "❌ Ошибка sudo при unmount. Проверь пароль в $PASS_FILE"
+                exit 1
+            fi
             [ ! -d "$MOUNT_DIR" ] && mkdir -p "$MOUNT_DIR"
 
-            echo "$SUDO_PASS" | sudo -S mount -t msdos -o rw,auto,nobrowse "/dev/$DEVICE" "$MOUNT_DIR" || {
-                echo "❌ Ошибка монтирования"
+            if ! echo "$SUDO_PASS" | sudo -S mount -t msdos -o rw,auto,nobrowse "/dev/$DEVICE" "$MOUNT_DIR" 2>/dev/null; then
+                echo "❌ Ошибка sudo при монтировании. Проверь пароль в $PASS_FILE"
                 exit 1
-            }
+            fi
 
             cp "$fw_file" "$MOUNT_DIR/" && echo "✅ $half_name успешно прошита!"
             echo "   Отключи USB от этой половины."
-            echo "$SUDO_PASS" | sudo -S diskutil unmount "$MOUNT_DIR" || true
-            break
+            echo "$SUDO_PASS" | sudo -S diskutil unmount "$MOUNT_DIR" 2>/dev/null || true
+
+            # Ждем, пока диск действительно отключится
+            echo ""
+            echo "⏳ Жду отключения диска NICENANO..."
+            while true; do
+                MOUNT_CHECK=$(ls /Volumes 2>/dev/null | grep -iE "NICENANO" | head -n 1)
+                if [ -z "$MOUNT_CHECK" ]; then
+                    echo "✅ Диск отключен, можно продолжать"
+                    echo ""
+                    break
+                fi
+                sleep 1
+            done
+
+            # Показываем метод B на случай проблем
+            echo "ℹ️  Если следующая половинка не подключается:"
+            echo "   Попробуй МЕТОД B:"
+            echo "   1. Отключи USB"
+            echo "   2. УДЕРЖИВАЙ кнопку RESET"
+            echo "   3. Подключи USB (продолжая держать RESET)"
+            echo "   4. Отпусти RESET через 2-3 секунды"
+            echo ""
+            return 0
         fi
+
+        # Обратный отсчет
+        REMAINING=$((TIMEOUT - ELAPSED))
+        printf "\r⏳ Осталось: %02d сек..." $REMAINING
         sleep 1
+        ELAPSED=$((ELAPSED + 1))
     done
+
+    # Таймаут истек
+    echo ""
+    echo ""
+    echo "⏱️  Таймаут истек! Диск NICENANO не обнаружен."
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "💡 МЕТОД B: Альтернативный вход в bootloader"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    echo "Попробуй этот метод, если двойной reset не работает:"
+    echo ""
+    echo "   1. Отключи USB от клавиатуры"
+    echo "   2. Найди кнопку RESET на контроллере"
+    echo "   3. НАЖМИ и УДЕРЖИВАЙ кнопку RESET"
+    echo "   4. Подключи USB (продолжая ДЕРЖАТЬ RESET!)"
+    echo "   5. Держи RESET ещё 2-3 секунды после подключения"
+    echo "   6. Отпусти RESET"
+    echo "   7. Должен появиться диск NICENANO"
+    echo ""
+    echo "Альтернатива: замкни контакты RST и GND скрепкой дважды"
+    echo ""
+    exit 1
 }
 
 # ===== ПАРСИНГ BT-ПАР =====
