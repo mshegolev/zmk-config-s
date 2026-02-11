@@ -390,6 +390,13 @@ flash_half() {
             sync
             sleep 2
 
+            echo ""
+            echo "ℹ️  ВАЖНО: Контроллер перезагрузится автоматически"
+            echo "   macOS может показать ошибку 'диск извлечен неправильно'"
+            echo "   ✅ Это НОРМАЛЬНО - так работает bootloader!"
+            echo "   ✅ Прошивка записана успешно, ошибку можно игнорировать"
+            echo ""
+
             # Корректно извлекаем диск (eject вместо unmount)
             echo "$SUDO_PASS" | sudo -S diskutil eject "$MOUNT_DIR" 2>/dev/null || true
 

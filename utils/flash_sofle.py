@@ -368,6 +368,13 @@ class Flasher:
                         run_command("sync")
                         time.sleep(2)
 
+                        print()
+                        print_color("ℹ️  ВАЖНО: Контроллер перезагрузится автоматически", Colors.YELLOW)
+                        print("   macOS может показать ошибку 'диск извлечен неправильно'")
+                        print("   ✅ Это НОРМАЛЬНО - так работает bootloader!")
+                        print("   ✅ Прошивка записана успешно, ошибку можно игнорировать")
+                        print()
+
                         # Корректно извлекаем диск (eject)
                         self.sudo.run_sudo(f"diskutil eject {MOUNT_DIR}")
 
