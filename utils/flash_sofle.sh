@@ -85,7 +85,7 @@ fetch_remote_version() {
     fi
 
     # Получаем тег для коммита (если есть)
-    REMOTE_TAG=$(gh api "repos/$REPO/git/refs/tags" --jq ".[] | select(.object.sha == \"$REMOTE_COMMIT\") | .ref" 2>/dev/null | sed 's|refs/tags/||' | head -1)
+    REMOTE_TAG=$(gh api "repos/$REPO/tags" --jq ".[] | select(.commit.sha == \"$REMOTE_COMMIT\") | .name" 2>/dev/null | head -1)
     [ -z "$REMOTE_TAG" ] && REMOTE_TAG="-"
 }
 
