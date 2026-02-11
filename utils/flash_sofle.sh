@@ -22,25 +22,55 @@ set -- "${ARGS[@]}"
 
 # ===== Читаем пароль =====
 if [ ! -f "$PASS_FILE" ]; then
-    echo "❌ Файл с паролем не найден: $PASS_FILE"
+    echo "⚠️  Файл с паролем не найден: $PASS_FILE"
     echo ""
-    echo "📋 Как создать файл с паролем:"
-    echo "   echo 'ваш_пароль_sudo' > $PASS_FILE"
-    echo "   chmod 600 $PASS_FILE"
+    echo -n "🔐 Введи пароль sudo: "
+    read -s SUDO_PASS
     echo ""
-    exit 1
-fi
-SUDO_PASS=$(cat "$PASS_FILE")
 
-# Проверяем sudo пароль
-if ! echo "$SUDO_PASS" | sudo -S -v 2>/dev/null; then
-    echo "❌ Неверный пароль sudo в файле: $PASS_FILE"
+    # Проверяем пароль
+    if ! echo "$SUDO_PASS" | sudo -S -v 2>/dev/null; then
+        echo "❌ Неверный пароль sudo"
+        exit 1
+    fi
+
+    echo "✅ Пароль принят"
     echo ""
-    echo "📋 Обнови пароль:"
-    echo "   echo 'ваш_пароль_sudo' > $PASS_FILE"
-    echo "   chmod 600 $PASS_FILE"
+    echo -n "💾 Сохранить пароль в $PASS_FILE? (y/n): "
+    read -n 1 SAVE_PASS
     echo ""
-    exit 1
+
+    if [ "$SAVE_PASS" = "y" ] || [ "$SAVE_PASS" = "Y" ]; then
+        echo "$SUDO_PASS" > "$PASS_FILE"
+        chmod 600 "$PASS_FILE"
+        echo "✅ Пароль сохранен в $PASS_FILE"
+    else
+        echo "ℹ️  Пароль не сохранен (будет запрошен при следующем запуске)"
+    fi
+    echo ""
+else
+    SUDO_PASS=$(cat "$PASS_FILE")
+
+    # Проверяем sudo пароль
+    if ! echo "$SUDO_PASS" | sudo -S -v 2>/dev/null; then
+        echo "❌ Неверный пароль sudo в файле: $PASS_FILE"
+        echo ""
+        echo -n "🔐 Введи новый пароль sudo: "
+        read -s SUDO_PASS
+        echo ""
+
+        # Проверяем новый пароль
+        if ! echo "$SUDO_PASS" | sudo -S -v 2>/dev/null; then
+            echo "❌ Неверный пароль sudo"
+            exit 1
+        fi
+
+        echo "✅ Пароль принят"
+        echo "$SUDO_PASS" > "$PASS_FILE"
+        chmod 600 "$PASS_FILE"
+        echo "✅ Пароль обновлен в $PASS_FILE"
+        echo ""
+    fi
 fi
 
 # ===== HELP =====
