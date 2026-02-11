@@ -36,6 +36,7 @@ show_help() {
   ./flash_sofle.sh [target] [--force]
 
 target:
+  check     - сравнить локальную и доступную версии
   download  - скачать последнюю прошивку из GitHub Actions
   update    - скачать и прошить обе половины (download + all)
   version   - показать версию скачанной прошивки
@@ -53,32 +54,92 @@ options:
 EOF
 }
 
-# ===== СКАЧИВАНИЕ ПРОШИВКИ =====
-download_firmware() {
-    echo "$(date) - 📥 Скачивание последней прошивки из GitHub Actions..."
-
-    # Проверка gh CLI
+# ===== ПРОВЕРКА GH CLI =====
+check_gh_cli() {
     if ! command -v gh &> /dev/null; then
         echo "❌ GitHub CLI (gh) не установлен"
         echo "   Установка: brew install gh"
         exit 1
     fi
 
-    # Проверка авторизации
     if ! gh auth status &> /dev/null; then
         echo "❌ Не авторизован в GitHub CLI"
         echo "   Выполни: gh auth login"
         exit 1
     fi
+}
 
-    # Получаем информацию о последнем успешном run
+# ===== ПОЛУЧИТЬ ИНФО О ПОСЛЕДНЕМ БИЛДЕ =====
+fetch_remote_version() {
     RUN_INFO=$(gh run list --repo "$REPO" --workflow build.yml --status success --limit 1 --json databaseId,headSha,createdAt,headBranch,displayTitle)
-    RUN_ID=$(echo "$RUN_INFO" | jq -r '.[0].databaseId')
-    COMMIT_SHA=$(echo "$RUN_INFO" | jq -r '.[0].headSha')
-    COMMIT_SHORT="${COMMIT_SHA:0:7}"
-    BUILD_DATE=$(echo "$RUN_INFO" | jq -r '.[0].createdAt')
-    BRANCH=$(echo "$RUN_INFO" | jq -r '.[0].headBranch')
-    COMMIT_MSG=$(echo "$RUN_INFO" | jq -r '.[0].displayTitle')
+    REMOTE_RUN_ID=$(echo "$RUN_INFO" | jq -r '.[0].databaseId')
+    REMOTE_COMMIT=$(echo "$RUN_INFO" | jq -r '.[0].headSha')
+    REMOTE_COMMIT_SHORT="${REMOTE_COMMIT:0:7}"
+    REMOTE_BUILD_DATE=$(echo "$RUN_INFO" | jq -r '.[0].createdAt')
+    REMOTE_BRANCH=$(echo "$RUN_INFO" | jq -r '.[0].headBranch')
+    REMOTE_COMMIT_MSG=$(echo "$RUN_INFO" | jq -r '.[0].displayTitle')
+
+    if [ -z "$REMOTE_RUN_ID" ] || [ "$REMOTE_RUN_ID" == "null" ]; then
+        echo "❌ Не найден успешный workflow run"
+        exit 1
+    fi
+
+    # Получаем тег для коммита (если есть)
+    REMOTE_TAG=$(gh api "repos/$REPO/git/refs/tags" --jq ".[] | select(.object.sha == \"$REMOTE_COMMIT\") | .ref" 2>/dev/null | sed 's|refs/tags/||' | head -1)
+    [ -z "$REMOTE_TAG" ] && REMOTE_TAG="-"
+}
+
+# ===== ПРОВЕРИТЬ ВЕРСИИ =====
+check_versions() {
+    check_gh_cli
+    echo "🔍 Проверяю версии..."
+    echo ""
+
+    fetch_remote_version
+
+    echo "☁️  Доступна для скачивания:"
+    echo "   Version: $REMOTE_TAG"
+    echo "   Commit:  $REMOTE_COMMIT_SHORT ($REMOTE_COMMIT_MSG)"
+    echo "   Branch:  $REMOTE_BRANCH"
+    echo "   Build:   $REMOTE_BUILD_DATE"
+    echo ""
+
+    if [ -f "$VERSION_FILE" ]; then
+        source "$VERSION_FILE"
+        echo "💾 Скачана локально:"
+        echo "   Version: ${tag:-"-"}"
+        echo "   Commit:  $commit_short ($commit_message)"
+        echo "   Branch:  $branch"
+        echo "   Build:   $build_date"
+        echo ""
+
+        if [ "$commit" == "$REMOTE_COMMIT" ]; then
+            echo "✅ Локальная версия актуальна"
+        else
+            echo "⚠️  Доступна новая версия! Выполни: ./flash_sofle.sh download"
+        fi
+    else
+        echo "💾 Локально: не скачано"
+        echo ""
+        echo "➡️  Выполни: ./flash_sofle.sh download"
+    fi
+}
+
+# ===== СКАЧИВАНИЕ ПРОШИВКИ =====
+download_firmware() {
+    echo "$(date) - 📥 Скачивание последней прошивки из GitHub Actions..."
+
+    check_gh_cli
+    fetch_remote_version
+
+    # Используем переменные из fetch_remote_version
+    RUN_ID="$REMOTE_RUN_ID"
+    COMMIT_SHA="$REMOTE_COMMIT"
+    COMMIT_SHORT="$REMOTE_COMMIT_SHORT"
+    BUILD_DATE="$REMOTE_BUILD_DATE"
+    BRANCH="$REMOTE_BRANCH"
+    COMMIT_MSG="$REMOTE_COMMIT_MSG"
+    TAG="$REMOTE_TAG"
 
     if [ -z "$RUN_ID" ] || [ "$RUN_ID" == "null" ]; then
         echo "❌ Не найден успешный workflow run"
@@ -86,9 +147,10 @@ download_firmware() {
     fi
 
     echo "✅ Найден run: $RUN_ID"
-    echo "   Commit: $COMMIT_SHORT ($COMMIT_MSG)"
-    echo "   Branch: $BRANCH"
-    echo "   Date:   $BUILD_DATE"
+    echo "   Version: $TAG"
+    echo "   Commit:  $COMMIT_SHORT ($COMMIT_MSG)"
+    echo "   Branch:  $BRANCH"
+    echo "   Date:    $BUILD_DATE"
 
     # Очищаем старые прошивки
     rm -rf "$DOWNLOADS"
@@ -111,6 +173,7 @@ commit_short=$COMMIT_SHORT
 branch=$BRANCH
 build_date=$BUILD_DATE
 commit_message=$COMMIT_MSG
+tag=$TAG
 download_date=$(date -Iseconds)
 EOF
 
@@ -129,6 +192,7 @@ show_version() {
 
     source "$VERSION_FILE"
     echo "📋 Версия прошивки:"
+    echo "   Version: ${tag:-"-"}"
     echo "   Commit:  $commit_short ($commit_message)"
     echo "   Branch:  $branch"
     echo "   Build:   $build_date"
@@ -255,6 +319,9 @@ TARGET="$1"
 echo "$(date) - 🚀 Автоматическая прошивка Sofle V2"
 
 case "$TARGET" in
+    check)
+        check_versions
+        ;;
     download)
         download_firmware
         ;;
