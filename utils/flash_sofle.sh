@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e
+# Removed set -e to prevent script from exiting on non-critical errors
+# Error handling is done explicitly where needed
 
 MOUNT_DIR="$HOME/nicenano_mount"
 DOWNLOADS="$HOME/Downloads/zmk-firmware"
