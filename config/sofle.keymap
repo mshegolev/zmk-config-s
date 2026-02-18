@@ -10,6 +10,12 @@
 #include <dt-bindings/zmk/mouse.h>
 #include <dt-bindings/zmk/outputs.h>
 
+// Fast mouse movement values (3x default speed)
+#define FAST_MOVE_UP    MOVE_Y(-3600)
+#define FAST_MOVE_DOWN  MOVE_Y(3600)
+#define FAST_MOVE_LEFT  MOVE_X(-3600)
+#define FAST_MOVE_RIGHT MOVE_X(3600)
+
 / {
     behaviors {
         // LSHIFT: при удержании RSHIFT выводит ` (grave)
@@ -60,6 +66,32 @@
             #binding-cells = <0>;
             tapping-term-ms = <200>;
             bindings = <&kp SQT>, <&kp DQT>;
+        };
+
+        // Mouse movement with LShift acceleration (3x faster)
+        mmv_up: mmv_up {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&mmv MOVE_UP>, <&mmv FAST_MOVE_UP>;
+            mods = <(MOD_LSFT)>;
+        };
+        mmv_down: mmv_down {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&mmv MOVE_DOWN>, <&mmv FAST_MOVE_DOWN>;
+            mods = <(MOD_LSFT)>;
+        };
+        mmv_left: mmv_left {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&mmv MOVE_LEFT>, <&mmv FAST_MOVE_LEFT>;
+            mods = <(MOD_LSFT)>;
+        };
+        mmv_right: mmv_right {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&mmv MOVE_RIGHT>, <&mmv FAST_MOVE_RIGHT>;
+            mods = <(MOD_LSFT)>;
         };
     };
 
@@ -157,11 +189,12 @@
             //  36 TR   37 MUTE 38 V-  39 V+  40 TR  41 TR  42 TR  43 TR   44 LCK  45 RCK  46 TR   47 TR   48 TR   49 TR
             //             50 TR   51 TR   52 TR   53 TR   54 TR    55 TR   56 TR   57 TR   58 TR   59 TR
             // ------------------------------------------------------------------------------------------------------------
+            // Mouse: LShift = 3x faster movement
 
             bindings = <
 &trans      &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4                    &out OUT_USB  &out OUT_BLE  &out OUT_TOG  &trans  &trans  &bt BT_CLR
 &trans      &kp INS       &kp PSCRN     &kp K_CMENU   &trans        &trans                          &msc SCRL_LEFT  &msc SCRL_DOWN  &msc SCRL_UP  &msc SCRL_RIGHT  &trans  &trans
-&trans      &kp MINUS     &kp PLUS      &kp EQUAL     &kp UNDER     &trans                          &mmv MOVE_LEFT  &mmv MOVE_DOWN  &mmv MOVE_UP  &mmv MOVE_RIGHT  &trans  &trans
+&trans      &kp MINUS     &kp PLUS      &kp EQUAL     &kp UNDER     &trans                          &mmv_left  &mmv_down  &mmv_up  &mmv_right  &trans  &trans
 &trans      &kp C_MUTE    &kp C_VOL_DN  &kp C_VOL_UP  &trans        &trans        &trans    &trans  &mkp LCLK       &mkp RCLK       &trans        &trans  &trans  &trans
                           &trans        &trans        &trans        &trans        &trans    &trans  &trans        &trans        &trans        &trans
             >;
