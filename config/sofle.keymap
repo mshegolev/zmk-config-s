@@ -68,6 +68,15 @@
             bindings = <&kp SQT>, <&kp DQT>;
         };
 
+        // Lock/Unlock combo: срабатывает только после удержания 2 секунд
+        lock_toggle_hold: lock_toggle_hold {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <0>;
+            tapping-term-ms = <2000>;
+            flavor = "hold-preferred";
+            bindings = <&tog 3>, <&none>;
+        };
+
         // Mouse movement with LShift acceleration (3x faster)
         mmv_up: mmv_up {
             compatible = "zmk,behavior-mod-morph";
@@ -107,20 +116,20 @@
             layers = <0>;
         };
 
-        // LShift+Lower+Raise → Lock (блокировка клавиатуры)
+        // Крайние нижние клавиши (LCTRL+RCTRL), удержание 2с → Lock (блокировка клавиатуры)
         combo_lock {
             timeout-ms = <100>;
-            key-positions = <36 53 56>;  // LSHIFT=36, MO1=53, MO2=56
-            bindings = <&tog 3>;         // Toggle layer 3 (lock)
-            layers = <0>;                // Только на default слое (блокировка)
+            key-positions = <50 59>;       // LCTRL=50, RCTRL=59
+            bindings = <&lock_toggle_hold>;  // Toggle layer 3 (lock) после удержания 2с
+            layers = <0>;                  // Только на default слое (блокировка)
         };
 
-        // RShift+Lower+Raise → Unlock (разблокировка клавиатуры)
+        // Крайние верхние клавиши (ESC/~+MINUS), удержание 2с → Unlock (разблокировка клавиатуры)
         combo_unlock {
             timeout-ms = <100>;
-            key-positions = <49 53 56>;  // RSHIFT=49, MO1=53, MO2=56
-            bindings = <&tog 3>;         // Toggle layer 3 (unlock)
-            layers = <3>;                // Только на lock слое (разблокировка)
+            key-positions = <0 11>;        // ESC/~=0, MINUS=11
+            bindings = <&lock_toggle_hold>;  // Toggle layer 3 (unlock) после удержания 2с
+            layers = <3>;                  // Только на lock слое (разблокировка)
         };
 
         // ALT + BSPC → Delete word (удалить слово назад)
@@ -147,7 +156,7 @@
             // ------------------------------------------------------------------------------------------------------------
             // Hold-Tap:     ESC: tap=Esc, hold=~
             // Tap-Dance:    ;: tap=;, 2tap=:         ': tap=', 2tap="
-            // Combos:       J+K=Escape (после паузы)  LShift+MO1+MO2=Lock
+            // Combos:       J+K=Escape (после паузы)  LCTRL+RCTRL (удержание 2с)=Lock
             // ------------------------------------------------------------------------------------------------------------
 
             bindings = <
@@ -203,17 +212,16 @@
         lock_layer {
             // ------------------------------------------------------------------------------------------------------------
             // LOCK LAYER - все клавиши отключены, кроме unlock комбо
-            // Блокировка:   LShift + Lower + Raise (только из default layer)
-            // Разблокировка: RShift + Lower + Raise (только из lock layer)
-            // Активны только: RSHIFT(49), MO1(53), MO2(56)
+            // Блокировка:    LCTRL(50) + RCTRL(59), удержание 2с (только из default layer)
+            // Разблокировка: ESC/~(0) + MINUS(11), удержание 2с (только из lock layer)
             // ------------------------------------------------------------------------------------------------------------
 
             bindings = <
 &none  &none  &none  &none  &none  &none                  &none  &none  &none  &none  &none  &none
 &none  &none  &none  &none  &none  &none                  &none  &none  &none  &none  &none  &none
 &none  &none  &none  &none  &none  &none                  &none  &none  &none  &none  &none  &none
-&none  &none  &none  &none  &none  &none  &none    &none  &none  &none  &none  &none  &none  &kp RSHFT
-       &none  &none  &none  &mo 1  &none    &none  &mo 2  &none  &none  &none
+&none  &none  &none  &none  &none  &none  &none    &none  &none  &none  &none  &none  &none  &none
+       &none  &none  &none  &none  &none    &none  &none  &none  &none  &none
             >;
         };
     };
