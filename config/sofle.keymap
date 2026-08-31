@@ -69,10 +69,10 @@
         };
 
         // Lock/Unlock combo: срабатывает только после удержания 2 секунд
-        // Вызывается как "&lock_toggle_hold 3": 3 передаётся в &tog при удержании, tap ничего не делает
+        // Вызывается как "&lock_toggle_hold 3 0": 3 передаётся в &tog при удержании, второй параметр для &none игнорируется
         lock_toggle_hold: lock_toggle_hold {
             compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <1>;
+            #binding-cells = <2>;
             tapping-term-ms = <2000>;
             flavor = "hold-preferred";
             bindings = <&tog>, <&none>;
@@ -121,7 +121,7 @@
         combo_lock {
             timeout-ms = <100>;
             key-positions = <50 59>;       // LCTRL=50, RCTRL=59
-            bindings = <&lock_toggle_hold 3>;  // Toggle layer 3 (lock) после удержания 2с
+            bindings = <&lock_toggle_hold 3 0>;  // Toggle layer 3 (lock) после удержания 2с
             layers = <0>;                  // Только на default слое (блокировка)
         };
 
@@ -129,7 +129,7 @@
         combo_unlock {
             timeout-ms = <100>;
             key-positions = <0 11>;        // ESC/~=0, MINUS=11
-            bindings = <&lock_toggle_hold 3>;  // Toggle layer 3 (unlock) после удержания 2с
+            bindings = <&lock_toggle_hold 3 0>;  // Toggle layer 3 (unlock) после удержания 2с
             layers = <3>;                  // Только на lock слое (разблокировка)
         };
 
