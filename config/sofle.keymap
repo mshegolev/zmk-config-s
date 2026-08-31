@@ -52,6 +52,24 @@
             bindings = <&kp>, <&kp>;
         };
 
+        // Home row mods: tap = буква, hold (200мс, balanced) = модификатор
+        hm: home_row_mod {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            tapping-term-ms = <200>;
+            flavor = "balanced";
+            bindings = <&kp>, <&kp>;
+        };
+
+        // Home row mod для ; (сохраняет tap-dance ;/: на tap)
+        hm_semi: hm_semi {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            tapping-term-ms = <200>;
+            flavor = "balanced";
+            bindings = <&kp>, <&semi_colon>;
+        };
+
         // ; tap = ;, double-tap = :
         semi_colon: semi_colon {
             compatible = "zmk,behavior-tap-dance";
@@ -151,11 +169,12 @@
             //
             //   0  ESC/~ 1  1    2  2    3  3    4  4    5  5            6  6    7  7    8  8    9  9    10 0    11 -
             //  12  TAB  13 Q   14 W   15 E   16 R   17 T           18 Y   19 U   20 I   21 O   22 P   23 ⌫/DEL
-            //  24 CAPS  25 A   26 S   27 D   28 F   29 G           30 H   31 J   32 K   33 L   34 ;/:  35 '/"
+            //  24 CAPS  25 A/GUI 26 S/ALT 27 D/CTRL 28 F/SHIFT 29 G      30 H   31 J/SHIFT 32 K/CTRL 33 L/ALT 34 ;/GUI  35 '/"
             //  36 ⇧/`   37 Z   38 X   39 C   40 V   41 B   42 [  43 ]    44 N   45 M   46 ,   47 .   48 /   49 ⇧/~
             //             50 CTRL  51 ALT  52 GUI  53 MO1  54 SPC     55 SPC   56 MO2  57 ENT  58 Fn   59 RCTRL
             // ------------------------------------------------------------------------------------------------------------
             // Hold-Tap:     ESC: tap=Esc, hold=~
+            // Home row mods (200мс, balanced): A/;=GUI  S/L=ALT  D/K=CTRL  F/J=SHIFT (tap=буква)
             // Tap-Dance:    ;: tap=;, 2tap=:         ': tap=', 2tap="
             // Combos:       J+K=Escape (после паузы)  LCTRL+RCTRL (удержание 2с)=Lock
             // ------------------------------------------------------------------------------------------------------------
@@ -163,7 +182,7 @@
             bindings = <
 &esc_tilde TILDE ESCAPE  &kp N1  &kp N2            &kp N3        &kp N4         &kp N5                                         &kp N6  &kp N7     &kp N8        &kp N9             &kp N0    &kp MINUS
 &kp TAB                  &kp Q   &kp W             &kp E         &kp R          &kp T                                          &kp Y   &kp U      &kp I         &kp O              &kp P     &kp BSPC
-&kp CAPSLOCK             &kp A   &kp S             &kp D         &kp F          &kp G                                          &kp H   &kp J      &kp K         &kp L              &semi_colon  &sqt_dqt
+&kp CAPSLOCK             &hm LGUI A  &hm LALT S    &hm LCTRL D   &hm LSHFT F    &kp G                                          &kp H   &hm RSHFT J  &hm RCTRL K  &hm RALT L         &hm_semi RGUI 0  &sqt_dqt
 &lshift_grave            &kp Z   &kp X             &kp C         &kp V          &kp B   &kp LEFT_BRACKET    &kp RIGHT_BRACKET  &kp N   &kp M      &kp COMMA     &kp DOT            &kp FSLH  &rshift_tilde
                                  &kp LEFT_CONTROL  &kp LEFT_ALT  &kp LEFT_META  &mo 1   &kp SPACE           &kp SPACE          &mo 2   &kp ENTER  &kp GLOBE     &kp RIGHT_CONTROL
             >;
