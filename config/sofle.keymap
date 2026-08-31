@@ -119,7 +119,7 @@
 
         // Крайние нижние клавиши (LCTRL+RCTRL), удержание 2с → Lock (блокировка клавиатуры)
         combo_lock {
-            timeout-ms = <100>;
+            timeout-ms = <300>;
             key-positions = <50 59>;       // LCTRL=50, RCTRL=59
             bindings = <&lock_toggle_hold 3 0>;  // Toggle layer 3 (lock) после удержания 2с
             layers = <0>;                  // Только на default слое (блокировка)
@@ -127,7 +127,7 @@
 
         // Крайние верхние клавиши (ESC/~+MINUS), удержание 2с → Unlock (разблокировка клавиатуры)
         combo_unlock {
-            timeout-ms = <100>;
+            timeout-ms = <300>;
             key-positions = <0 11>;        // ESC/~=0, MINUS=11
             bindings = <&lock_toggle_hold 3 0>;  // Toggle layer 3 (unlock) после удержания 2с
             layers = <3>;                  // Только на lock слое (разблокировка)
