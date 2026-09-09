@@ -2,12 +2,16 @@ manifest:
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
-    # Additional modules containing boards/shields/custom code can be listed here as well
-    # See https://docs.zephyrproject.org/3.2.0/develop/west/manifest.html#projects
+    - name: zbdm
+      url-base: https://github.com/markfeinstein
   projects:
     - name: zmk
       remote: zmkfirmware
-      revision: v0.3.0
+      revision: 904c9aec8822d79149d42c8a9a77e8828eb08f5a
       import: app/west.yml
+    - name: zmk-behavior-dynamic-macro
+      remote: zbdm
+      revision: v0.1.0
+      path: modules/zmk/zmk-behavior-dynamic-macro
   self:
     path: config

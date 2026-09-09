@@ -5,10 +5,12 @@
  */
 
 #include <behaviors.dtsi>
+#include <behaviors/zbdm.dtsi>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/mouse.h>
 #include <dt-bindings/zmk/outputs.h>
+#include <dt-bindings/zmk/zbdm.h>
 
 // Fast mouse movement values (3x default speed)
 #define FAST_MOVE_UP    MOVE_Y(-3600)
@@ -126,15 +128,6 @@
     combos {
         compatible = "zmk,combos";
 
-        // J+K → Escape (после паузы 100мс, чтобы не мешать быстрому набору)
-        combo_esc {
-            timeout-ms = <30>;
-            require-prior-idle-ms = <100>;
-            key-positions = <31 32>;  // J=31, K=32
-            bindings = <&kp ESCAPE>;
-            layers = <0>;
-        };
-
         // Крайние нижние клавиши (LCTRL+RCTRL), удержание 2с → Lock (блокировка клавиатуры)
         combo_lock {
             timeout-ms = <300>;
@@ -158,6 +151,14 @@
             bindings = <&kp LA(BSPC)>;  // Option(Alt) + Backspace
             layers = <0>;
         };
+
+        // MO1(53) + MO2(56) → Toggle macro layer (4)
+        combo_macro_toggle {
+            timeout-ms = <200>;
+            key-positions = <53 56>;  // MO1=53, MO2=56
+            bindings = <&tog 4>;
+            layers = <0>;
+        };
     };
 
     keymap {
@@ -176,7 +177,7 @@
             // Hold-Tap:     ESC: tap=Esc, hold=~
             // Home row mods (200мс, balanced): A/;=GUI  S/L=ALT  D/K=CTRL  F/J=SHIFT (tap=буква)
             // Tap-Dance:    ;: tap=;, 2tap=:         ': tap=', 2tap="
-            // Combos:       J+K=Escape (после паузы)  LCTRL+RCTRL (удержание 2с)=Lock
+            // Combos:       LCTRL+RCTRL (удержание 2с)=Lock
             // ------------------------------------------------------------------------------------------------------------
 
             bindings = <
@@ -242,6 +243,26 @@
 &none  &none  &none  &none  &none  &none                  &none  &none  &none  &none  &none  &none
 &none  &none  &none  &none  &none  &none  &none    &none  &none  &none  &none  &none  &none  &none
        &none  &none  &none  &none  &none    &none  &none  &none  &none  &none
+            >;
+        };
+
+        macro_layer {
+            // ------------------------------------------------------------------------------------------------------------
+            // MACRO LAYER (4) - динамическая запись/воспроизведение макросов
+            // Включение:   комбо MO1(53)+MO2(56) → toggle layer 4
+            // Выключение:  то же комбо или &trans обратно в default
+            //
+            // Home row:    A=REC0, S=REC1, D=STOP, F=CANCEL
+            //              J=PLAY0, K=PLAY1, L=CLEAR0, ;=CLEAR1
+            // Остальное:   &trans (прозрачно к default слою)
+            // ------------------------------------------------------------------------------------------------------------
+
+            bindings = <
+&trans  &trans  &trans  &trans  &trans  &trans                    &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans                    &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &zbdm ZBDM_TOGGLE 0  &zbdm ZBDM_TOGGLE 1  &zbdm ZBDM_STOP 0  &zbdm ZBDM_CANCEL 0  &trans    &trans  &zbdm ZBDM_PLAY 0  &zbdm ZBDM_PLAY 1  &zbdm ZBDM_CLEAR 0  &zbdm ZBDM_CLEAR 1  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+                       &trans  &trans  &trans  &trans  &trans      &trans  &trans  &trans  &trans  &trans
             >;
         };
     };
