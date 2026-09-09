@@ -157,7 +157,7 @@
             timeout-ms = <200>;
             key-positions = <53 56>;  // MO1=53, MO2=56
             bindings = <&tog 4>;
-            layers = <0>;
+            layers = <0 4>;
         };
     };
 
