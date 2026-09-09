@@ -95,11 +95,51 @@ target:
   reset     - прошивка reset (очистка BT и настроек)
   btpairs   - показать список Bluetooth-пар (BT1..BT5)
   btclear   - очистить все BT-пары и сразу перепрошить обе половины
+  macro     - показать мануал по макросам (слой 4, REC/PLAY)
 
 options:
   --force   - принудительное скачивание/отключение предупреждений
 
 Требуется: gh (GitHub CLI) для команды download
+EOF
+}
+
+# ===== МАНУАЛ ПО МАКРОСАМ =====
+show_macro_help() {
+    cat <<EOF
+
+🎯 Макро-слой (Layer 4) — запись и воспроизведение
+
+Как включить:
+  Нажми одновременно MO1(левый большой палец) + MO2(правый большой палец)
+  — клавиатура переключится на макро-слой.
+  Повторное нажатие MO1+MO2 выключает его.
+
+Что на макро-слое (home row):
+  A  — запись в слот 0 (REC)
+  S  — запись в слот 1 (REC)
+  D  — остановить запись (STOP)
+  F  — отменить запись (CANCEL)
+  J  — воспроизвести слот 0 (PLAY)
+  K  — воспроизвести слот 1 (PLAY)
+  L  — очистить слот 0 (CLEAR)
+  ;  — очистить слот 1 (CLEAR)
+
+Пример использования:
+  1. MO1+MO2 → макро-слой включён
+  2. Тап A → началась запись в слот 0
+  3. MO1+MO2 → макро-слой выключился, печатаешь git commit -am "fix"
+  4. MO1+MO2 → макро-слой, тап D → запись сохранена
+  5. MO1+MO2 → выключить макро-слой
+  6. Когда нужно — MO1+MO2 → J → скрипт выполняется
+
+Важно:
+  • Запись стартует сразу после тапа A/S, предыдущий слот очищается
+  • Повторный тап A/S во время записи = стоп + сохранить
+  • PLAY во время записи = стоп + сохранить
+  • CANCEL отменяет запись без сохранения
+  • Записываются нажатия клавиш и media-кнопки
+  • Слои, Bluetooth, мышь — НЕ записываются
 EOF
 }
 
@@ -269,6 +309,37 @@ show_version() {
     echo "   Run ID:  $run_id"
 }
 
+# ===== ПОКАЗАТЬ ЧТО НОВОГО =====
+show_changelog() {
+    if [ ! -f "$VERSION_FILE" ]; then
+        return
+    fi
+    source "$VERSION_FILE"
+    echo ""
+    echo "📋 Что нового (последние изменения):"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    if [ -n "$commit_message" ]; then
+        echo "  • $commit_message"
+    fi
+    if command -v gh &> /dev/null && [ -n "$commit" ]; then
+        local prev_commits=$(gh api "repos/$REPO/commits?sha=$branch&per_page=5" --jq '.[].commit.message' 2>/dev/null | head -5)
+        if [ -n "$prev_commits" ]; then
+            echo "$prev_commits" | while read -r line; do
+                first_line=$(echo "$line" | head -1)
+                [ -n "$first_line" ] && echo "  • $first_line"
+            done
+        fi
+    fi
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+}
+
+# ===== ВЕРСИЯ + ЧТО НОВОГО =====
+show_version_info() {
+    [ -f "$VERSION_FILE" ] && show_version
+    show_changelog
+}
+
 # ===== Поиск последних файлов .uf2 =====
 find_firmware() {
     LEFT_FIRMWARE=$(ls -t "$DOWNLOADS"/sofle_left-*.uf2 2>/dev/null | head -n1)
@@ -280,8 +351,7 @@ find_firmware() {
         exit 1
     fi
 
-    # Показываем версию если доступна
-    [ -f "$VERSION_FILE" ] && show_version && echo ""
+    show_version_info
 
     echo "✅ Найдены прошивки:"
     echo "   Левая  = $LEFT_FIRMWARE"
@@ -639,6 +709,9 @@ case "$TARGET" in
         ;;
     btclear)
         clear_btpairs
+        ;;
+    macro)
+        show_macro_help
         ;;
     *)
         show_help
