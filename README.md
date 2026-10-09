@@ -67,7 +67,7 @@ Other behaviors on the default layer:
 | Bluetooth | `BT0`–`BT4` (pos 1–5) |
 | Output | `OUT_USB` (pos 6), `OUT_BLE` (pos 7), `OUT_TOG` (pos 8) |
 | BT clear | `BTCLR` (pos 11) |
-| Utilities | `INS` (pos 13), `PSCRN` (pos 14), `K_CMENU` (pos 15, context menu), `DEL` (pos 23, Raise+⌫; BIOS setup) |
+| Utilities | `INS` (pos 13), `PSCRN` (pos 14), `K_CMENU` (pos 15, context menu), `DEL` (pos 23, Raise+⌫; BIOS setup), plain `ESC` (pos 0; BIOS ignores the tap-hold Esc) |
 | Scroll | `SCRL` arrows (pos 18–21) |
 | Mouse | `M← M↓ M↑ M→` (pos 30–33, Shift = 3× speed), `LCLK` (pos 44), `RCLK` (pos 45) |
 | Media | `MUTE` (pos 37), `VOL-` (pos 38), `VOL+` (pos 39) |
