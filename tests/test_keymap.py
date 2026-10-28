@@ -197,9 +197,9 @@ def test_game_layer_keeps_mo_keys_for_exit():
     assert LAYERS["game"][53] == "&mo 1" and LAYERS["game"][56] == "&mo 2"
 
 
-def test_game_layer_ijkl_are_arrows():
+def test_game_layer_inverted_t_arrows():
     g = LAYERS["game"]
-    assert (g[20], g[31], g[32], g[33]) == ("&kp UP_ARROW", "&kp LEFT", "&kp DOWN", "&kp RIGHT")
+    assert (g[32], g[45], g[46], g[47]) == ("&kp UP_ARROW", "&kp LEFT", "&kp DOWN", "&kp RIGHT")
 
 
 def test_game_layer_left_ctrl_bottom_left():

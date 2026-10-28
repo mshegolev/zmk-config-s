@@ -282,15 +282,15 @@
             // Включение: Raise (MO2) + G (pos 29) → toggle layer 5
             // Выход: комбо MO1(53)+MO2(56) → toggle layer 5 (Raise+G на слое 5 не работает: слой 5 выше Raise)
             // MO1/MO2 остаются на местах (стрелки/F-keys); lock-комбо и macro-комбо здесь не срабатывают.
-            // I/J/K/L = стрелки ↑/←/↓/→ (pos 20/31/32/33).
+            // Стрелки «перевёрнутой T»: ↑ = K (pos 32), ← ↓ → = M , . (pos 45/46/47).
             // Отличия от default: ESC без hold, LSHIFT(24, на месте CAPS), LCTRL(36, левый нижний угол), ;/' без tap-dance
             // ------------------------------------------------------------------------------------------------------------
 
             bindings = <
 &kp ESC     &kp N1  &kp N2            &kp N3        &kp N4         &kp N5                                         &kp N6  &kp N7     &kp N8        &kp N9             &kp N0    &kp MINUS
-&kp TAB     &kp Q   &kp W             &kp E         &kp R          &kp T                                          &kp Y   &kp U      &kp UP_ARROW  &kp O              &kp P     &kp BSPC
-&kp LSHFT   &kp A   &kp S             &kp D         &kp F          &kp G                                          &kp H   &kp LEFT   &kp DOWN      &kp RIGHT             &kp SEMI  &kp SQT
-&kp LCTRL   &kp Z   &kp X             &kp C         &kp V          &kp B   &kp LEFT_BRACKET    &kp RIGHT_BRACKET  &kp N   &kp M      &kp COMMA     &kp DOT            &kp FSLH  &kp RSHFT
+&kp TAB     &kp Q   &kp W             &kp E         &kp R          &kp T                                          &kp Y   &kp U      &kp I         &kp O              &kp P     &kp BSPC
+&kp LSHFT   &kp A   &kp S             &kp D         &kp F          &kp G                                          &kp H   &kp J      &kp UP_ARROW  &kp L                 &kp SEMI  &kp SQT
+&kp LCTRL   &kp Z   &kp X             &kp C         &kp V          &kp B   &kp LEFT_BRACKET    &kp RIGHT_BRACKET  &kp N   &kp LEFT   &kp DOWN      &kp RIGHT          &kp FSLH  &kp RSHFT
                     &kp LEFT_CONTROL  &kp LEFT_ALT  &kp LEFT_META  &mo 1   &kp SPACE           &kp SPACE          &mo 2   &kp ENTER  &kp GLOBE     &kp RIGHT_CONTROL
             >;
         };
