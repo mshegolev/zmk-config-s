@@ -7,7 +7,7 @@ A split keyboard firmware configuration for Sofle V2 using ZMK. Two halves (`lef
 * **Board:** nice!nano v2 × 2 (left + right)
 * **Shield:** Sofle V2 split keyboard (60 keys, no encoders)
 * **Connectivity:** USB + Bluetooth (up to 4 BT profiles, output switching USB/BLE/TOG)
-* **Layouts:** 4 typing layers (default / lower / raise / macro) + lock
+* **Layouts:** 4 typing layers (default / lower / raise / macro) + game + lock
 * **Visual editor:** [open config in Keymap Editor](https://nickcoutsos.github.io/keymap-editor/?repo=mshegolev/zmk-config-s)
 
 ## Layer Map
@@ -19,6 +19,7 @@ A split keyboard firmware configuration for Sofle V2 using ZMK. Two halves (`lef
 | 2 Raise | hold `MO2` (right thumb, pos 56) | Bluetooth, output, mouse, media |
 | 3 Lock | combo `LCTRL+RCTRL` hold 2s | all keys disabled |
 | 4 Macro | combo `MO1+MO2` toggle | runtime macro record / play |
+| 5 Game | on: `MO2` + `G` (pos 29); off: combo `MO1`+`MO2` | plain QWERTY: no home-row mods, hold-tap or tap-dance; `I`/`J`/`K`/`L` = arrows ↑/←/↓/→; `LCTRL` at bottom-left (pos 36), `LSHIFT` on the `CAPS` spot (pos 24); `MO1`/`MO2` stay in place |
 
 Quick reference:
 
@@ -129,3 +130,7 @@ Workflow:
 * Always disconnect USB before connecting/disconnecting the TRRS cable.
 * Be gentle with the USB ports on the microcontrollers.
 * This is a DIY keyboard prototype, not a polished product.
+
+## Tests
+
+`make test` (needs `pytest`) statically checks `config/sofle.keymap`: 60 bindings per layer, valid layer references, game-layer contents, and that every toggled layer can be turned off again (ZMK layer resolution is simulated: highest layer wins, combos match the highest active layer).

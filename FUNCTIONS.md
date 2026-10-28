@@ -21,11 +21,12 @@
 | 2 | Raise | hold `MO2` | Bluetooth, output, mouse, media |
 | 3 | Lock | combo `LCTRL+RCTRL` 2s | nothing (lock) |
 | 4 | Macro | combo `MO1+MO2` | record/play macros |
+| 5 | Game | on: `MO2` + `G`; off: combo `MO1+MO2` | plain QWERTY, no home-row mods / hold-tap / tap-dance |
 
 Notes:
 
 - `MO1` and `MO2` are *momentary*: press and hold to enter, release to return.
-- Layer 4 is *toggled*: one press in, second press out.
+- Layers 4 and 5 are *toggled*: one press in, second press out.
 - Layers stack above Default; the highest active layer wins.
 
 ---
@@ -165,7 +166,7 @@ Rules:
 | `ALT + BSPC` | delete previous word |
 | `LCTRL + RCTRL` (2s) | lock |
 | `ESC + MINUS` (2s, from lock) | unlock |
-| `MO1 + MO2` | toggle macro layer (4) |
+| `MO1 + MO2` | toggle macro layer (4); on game layer (5): exit game layer |
 
 ---
 
@@ -188,4 +189,5 @@ Layer 1  hold MO1:  F-keys, numbers, arrows, HOME/PGDN
 Layer 2  hold MO2:  BT profiles, USB/BLE toggle, mouse, media
 Layer 3  LCTRL+RCTRL 2s → lock;  ESC+MINUS 2s → unlock
 Layer 4  MO1+MO2    → REC A/S, STOP D, CANCEL F, PLAY J/K, CLEAR L/;
+Layer 5  hold MO2 + G → game layer ON;  MO1+MO2 combo → OFF (plain WASD, IJKL = arrows, bottom-left=CTRL, CAPS spot=SHIFT, no delays)
 ```

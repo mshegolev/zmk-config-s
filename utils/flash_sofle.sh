@@ -397,62 +397,17 @@ flash_half() {
         if [ -n "$MOUNT_POINT" ]; then
             echo "$(date) - $half_name подключена: /Volumes/$MOUNT_POINT"
 
-            DEVICE=$(df | grep "/Volumes/$MOUNT_POINT" | awk '{print $1}' | sed 's|/dev/||')
-            [ -z "$DEVICE" ] && DEVICE="disk4"
-
-            # Обновляем sudo timestamp
-            echo "$SUDO_PASS" | sudo -S -v 2>/dev/null
-
-            # Пробуем unmount с повторами (до 3 попыток)
-            UNMOUNTED=0
-            for attempt in 1 2 3; do
-                if [ $attempt -eq 1 ]; then
-                    # Первая попытка - обычный unmount
-                    UNMOUNT_OUTPUT=$(echo "$SUDO_PASS" | sudo -S diskutil unmount "/Volumes/$MOUNT_POINT" 2>&1)
-                else
-                    # Повторные попытки - force unmount
-                    echo "⚠️  Попытка $attempt/3: принудительный unmount..."
-                    sleep 1
-                    UNMOUNT_OUTPUT=$(echo "$SUDO_PASS" | sudo -S diskutil unmount force "/Volumes/$MOUNT_POINT" 2>&1)
-                fi
-
-                if [ $? -eq 0 ] || echo "$UNMOUNT_OUTPUT" | grep -qi "successfully"; then
-                    UNMOUNTED=1
-                    if [ $attempt -gt 1 ]; then
-                        echo "✅ Принудительный unmount успешен"
-                    fi
-                    break
-                fi
-            done
-
-            if [ $UNMOUNTED -eq 0 ]; then
-                echo "❌ Не удалось unmount после 3 попыток"
-                echo ""
-                read -p "Продолжить? (y - да, n - выход, r - повторить unmount): " choice
-                case "$choice" in
-                    n|N)
-                        exit 1
-                        ;;
-                    r|R)
-                        echo "Попробуй вручную: sudo diskutil unmount force /Volumes/$MOUNT_POINT"
-                        read -p "Нажми Enter когда unmount будет готов..."
-                        ;;
-                    *)
-                        # y или другое - продолжаем
-                        ;;
-                esac
-            fi
-            [ ! -d "$MOUNT_DIR" ] && mkdir -p "$MOUNT_DIR"
-
-            # Пробуем mount с подробным выводом ошибок
-            MOUNT_OUTPUT=$(echo "$SUDO_PASS" | sudo -S mount -t msdos -o rw,auto,nobrowse "/dev/$DEVICE" "$MOUNT_DIR" 2>&1)
-            if [ $? -ne 0 ]; then
-                echo "❌ Ошибка при монтировании: $MOUNT_OUTPUT"
-                echo "💡 Попробуй вручную: sudo mount -t msdos /dev/$DEVICE $MOUNT_DIR"
+            # msdosfs.kext не грузится (Bad code signature), `mount -t msdos` не работает.
+            # Пишем прямо в том, который macOS примонтировала сама (без unmount/mount).
+            if cp "$fw_file" "/Volumes/$MOUNT_POINT/"; then
+                echo "✅ $half_name успешно прошита!"
+            elif [ ! -d "/Volumes/$MOUNT_POINT" ]; then
+                # Bootloader перезагружается сразу после записи и мог отключить диск до конца cp
+                echo "✅ $half_name прошита (диск отключился сам — это нормально)"
+            else
+                echo "❌ Не удалось скопировать прошивку в /Volumes/$MOUNT_POINT"
                 exit 1
             fi
-
-            cp "$fw_file" "$MOUNT_DIR/" && echo "✅ $half_name успешно прошита!"
             echo "   Отключи USB от этой половины."
 
             # Синхронизируем и ждем завершения записи
@@ -468,7 +423,7 @@ flash_half() {
             echo ""
 
             # Корректно извлекаем диск (eject вместо unmount)
-            echo "$SUDO_PASS" | sudo -S diskutil eject "$MOUNT_DIR" 2>/dev/null || true
+            diskutil eject "/Volumes/$MOUNT_POINT" 2>/dev/null || true
 
             # Ждем, пока диск действительно отключится
             echo ""
