@@ -314,53 +314,17 @@ class Flasher:
                         mount_point = v
                         print(f"{timestamp()} - {half_name} подключена: {mount_point}")
 
-                        # Получаем устройство
-                        df_output, _ = run_command(f"df | grep '{mount_point}'")
-                        device = df_output.split()[0].replace('/dev/', '') if df_output else 'disk4'
-
-                        # Обновляем sudo timestamp
-                        self.sudo.run_sudo("-v")
-
-                        # Unmount (с повторами)
-                        unmounted = False
-                        for attempt in range(3):
-                            if attempt == 0:
-                                # Первая попытка - обычный unmount
-                                unmount_out, unmount_err = self.sudo.run_sudo(f"diskutil unmount {mount_point}")
-                            else:
-                                # Повторные попытки - force unmount
-                                print_color(f"⚠️  Попытка {attempt + 1}/3: принудительный unmount...", Colors.YELLOW)
-                                time.sleep(1)
-                                unmount_out, unmount_err = self.sudo.run_sudo(f"diskutil unmount force {mount_point}")
-
-                            if unmount_out or "successfully" in str(unmount_err).lower():
-                                unmounted = True
-                                if attempt > 0:
-                                    print_color("✅ Принудительный unmount успешен", Colors.GREEN)
-                                break
-
-                        if not unmounted:
-                            print_color(f"❌ Не удалось unmount после 3 попыток", Colors.RED)
-                            print()
-                            choice = input("Продолжить? (y - да, n - выход, r - повторить unmount): ").strip().lower()
-                            if choice == 'n':
-                                sys.exit(1)
-                            elif choice == 'r':
-                                # Даем пользователю время вручную unmount
-                                print("Попробуй вручную: sudo diskutil unmount force /Volumes/NICENANO")
-                                input("Нажми Enter когда unmount будет готов...")
-                            # Если 'y' или другое - продолжаем
-
-                        # Mount
-                        mount_out, mount_err = self.sudo.run_sudo(f"mount -t msdos -o rw,auto,nobrowse /dev/{device} {MOUNT_DIR}")
-                        if not mount_out and mount_err:
-                            print_color(f"❌ Ошибка при монтировании: {mount_err}", Colors.RED)
-                            print(f"💡 Попробуй вручную: sudo mount -t msdos /dev/{device} {MOUNT_DIR}")
+                        # msdosfs.kext не грузится (Bad code signature), `mount -t msdos` не работает.
+                        # Пишем прямо в том, который macOS примонтировала сама (без unmount/mount).
+                        ok, cp_err = run_command(f"cp '{fw_file}' '{mount_point}/'", capture=False, check=False)
+                        if ok:
+                            print_color(f"✅ {half_name} успешно прошита!", Colors.GREEN)
+                        elif not mount_point.exists():
+                            # Bootloader перезагружается сразу после записи и мог отключить диск до конца cp
+                            print_color(f"✅ {half_name} прошита (диск отключился сам — это нормально)", Colors.GREEN)
+                        else:
+                            print_color(f"❌ Не удалось скопировать прошивку в {mount_point}", Colors.RED)
                             sys.exit(1)
-
-                        # Копируем прошивку
-                        run_command(f"cp {fw_file} {MOUNT_DIR}/")
-                        print_color(f"✅ {half_name} успешно прошита!", Colors.GREEN)
                         print(f"   Отключи USB от этой половины.")
 
                         # Синхронизируем и ждем завершения записи
@@ -376,7 +340,7 @@ class Flasher:
                         print()
 
                         # Корректно извлекаем диск (eject)
-                        self.sudo.run_sudo(f"diskutil eject {MOUNT_DIR}")
+                        run_command(f"diskutil eject '{mount_point}'", check=False)
 
                         # Ждем отключения диска
                         print()
