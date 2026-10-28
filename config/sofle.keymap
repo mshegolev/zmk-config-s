@@ -215,16 +215,17 @@
             //
             //   0 ESC   1 BT1  2 BT2  3 BT3  4 BT4  5 BT5           6 OUTU 7 OUTB 8 OUTT 9 TR  10 TR  11 BTCLR
             //  12 TR   13 INS 14 PSCR 15 MENU 16 TR  17 TR         18 SCR← 19 SCR↓ 20 SCR↑ 21 SCR→ 22 TR   23 DEL
-            //  24 TR   25 -   26 +   27 =   28 _   29 TR          30 M←   31 M↓   32 M↑   33 M→   34 TR   35 TR
+            //  24 TR   25 -   26 +   27 =   28 _   29 GAME         30 M←   31 M↓   32 M↑   33 M→   34 TR   35 TR
             //  36 TR   37 MUTE 38 V-  39 V+  40 TR  41 TR  42 TR  43 TR   44 LCK  45 RCK  46 TR   47 TR   48 TR   49 TR
             //             50 TR   51 TR   52 TR   53 TR   54 TR    55 TR   56 TR   57 TR   58 TR   59 TR
             // ------------------------------------------------------------------------------------------------------------
             // Mouse: LShift = 3x faster movement
+            // GAME (pos 29, G) = toggle game layer (5); same key turns it off
 
             bindings = <
 &kp ESC     &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4                    &out OUT_USB  &out OUT_BLE  &out OUT_TOG  &trans  &trans  &bt BT_CLR
 &trans      &kp INS       &kp PSCRN     &kp K_CMENU   &trans        &trans                          &msc SCRL_LEFT  &msc SCRL_DOWN  &msc SCRL_UP  &msc SCRL_RIGHT  &trans  &kp DEL
-&trans      &kp MINUS     &kp PLUS      &kp EQUAL     &kp UNDER     &trans                          &mmv_left  &mmv_down  &mmv_up  &mmv_right  &trans  &trans
+&trans      &kp MINUS     &kp PLUS      &kp EQUAL     &kp UNDER     &tog 5                          &mmv_left  &mmv_down  &mmv_up  &mmv_right  &trans  &trans
 &trans      &kp C_MUTE    &kp C_VOL_DN  &kp C_VOL_UP  &trans        &trans        &trans    &trans  &mkp LCLK       &mkp RCLK       &trans        &trans  &trans  &trans
                           &trans        &trans        &trans        &trans        &trans    &trans  &trans        &trans        &trans        &trans
             >;
@@ -263,6 +264,24 @@
 &trans  &zbdm ZBDM_TOGGLE 0  &zbdm ZBDM_TOGGLE 1  &zbdm ZBDM_STOP 0  &zbdm ZBDM_CANCEL 0  &trans    &trans  &zbdm ZBDM_PLAY 0  &zbdm ZBDM_PLAY 1  &zbdm ZBDM_CLEAR 0  &zbdm ZBDM_CLEAR 1  &trans
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
                        &trans  &trans  &trans  &trans  &trans      &trans  &trans  &trans  &trans  &trans
+            >;
+        };
+
+        game_layer {
+            // ------------------------------------------------------------------------------------------------------------
+            // GAME LAYER (5) - обычный QWERTY без home-row mods, hold-tap и tap-dance (нулевая задержка)
+            // Включение/выключение: Raise (MO2) + G (pos 29) → toggle layer 5
+            // MO1/MO2 остаются на местах (стрелки/F-keys, выход из слоя); lock-комбо и macro-комбо здесь не срабатывают.
+            // I/J/K/L = стрелки ↑/←/↓/→ (pos 20/31/32/33).
+            // Отличия от default: ESC без hold, LSHIFT(24, на месте CAPS), LCTRL(36, левый нижний угол), ;/' без tap-dance
+            // ------------------------------------------------------------------------------------------------------------
+
+            bindings = <
+&kp ESC     &kp N1  &kp N2            &kp N3        &kp N4         &kp N5                                         &kp N6  &kp N7     &kp N8        &kp N9             &kp N0    &kp MINUS
+&kp TAB     &kp Q   &kp W             &kp E         &kp R          &kp T                                          &kp Y   &kp U      &kp UP_ARROW  &kp O              &kp P     &kp BSPC
+&kp LSHFT   &kp A   &kp S             &kp D         &kp F          &kp G                                          &kp H   &kp LEFT   &kp DOWN      &kp RIGHT             &kp SEMI  &kp SQT
+&kp LCTRL   &kp Z   &kp X             &kp C         &kp V          &kp B   &kp LEFT_BRACKET    &kp RIGHT_BRACKET  &kp N   &kp M      &kp COMMA     &kp DOT            &kp FSLH  &kp RSHFT
+                    &kp LEFT_CONTROL  &kp LEFT_ALT  &kp LEFT_META  &mo 1   &kp SPACE           &kp SPACE          &mo 2   &kp ENTER  &kp GLOBE     &kp RIGHT_CONTROL
             >;
         };
     };
