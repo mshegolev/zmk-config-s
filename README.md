@@ -19,7 +19,7 @@ A split keyboard firmware configuration for Sofle V2 using ZMK. Two halves (`lef
 | 2 Raise | hold `MO2` (right thumb, pos 56) | Bluetooth, output, mouse, media |
 | 3 Lock | combo `LCTRL+RCTRL` hold 2s | all keys disabled |
 | 4 Macro | combo `MO1+MO2` toggle | runtime macro record / play |
-| 5 Game | `MO2` + `G` (pos 29) toggle | plain QWERTY: no home-row mods, hold-tap or tap-dance; `I`/`J`/`K`/`L` = arrows ↑/←/↓/→; `LCTRL` at bottom-left (pos 36), `LSHIFT` on the `CAPS` spot (pos 24); `MO1`/`MO2` stay in place |
+| 5 Game | on: `MO2` + `G` (pos 29); off: combo `MO1`+`MO2` | plain QWERTY: no home-row mods, hold-tap or tap-dance; `I`/`J`/`K`/`L` = arrows ↑/←/↓/→; `LCTRL` at bottom-left (pos 36), `LSHIFT` on the `CAPS` spot (pos 24); `MO1`/`MO2` stay in place |
 
 Quick reference:
 
