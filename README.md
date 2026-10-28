@@ -130,3 +130,7 @@ Workflow:
 * Always disconnect USB before connecting/disconnecting the TRRS cable.
 * Be gentle with the USB ports on the microcontrollers.
 * This is a DIY keyboard prototype, not a polished product.
+
+## Tests
+
+`make test` (needs `pytest`) statically checks `config/sofle.keymap`: 60 bindings per layer, valid layer references, game-layer contents, and that every toggled layer can be turned off again (ZMK layer resolution is simulated: highest layer wins, combos match the highest active layer).

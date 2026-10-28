@@ -1,4 +1,4 @@
-.PHONY: help status version commit tag-patch tag-minor tag-major push release release-minor release-major
+.PHONY: help test status version commit tag-patch tag-minor tag-major push release release-minor release-major
 
 # Цвета для вывода
 RED := \033[0;31m
@@ -32,6 +32,9 @@ help: ## Показать эту справку
 	@echo "  make release MSG=\"Add feature\"    # Коммит + patch tag + push"
 	@echo "  make release-minor MSG=\"New API\"  # Коммит + minor tag + push"
 	@echo ""
+
+test: ## Проверить раскладку (слои, комбо, выход из слоёв): нужен pytest
+	@python3 -m pytest -q
 
 status: ## Показать git status
 	@echo "$(BLUE)Git Status:$(NC)"
